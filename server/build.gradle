@@ -1,0 +1,15 @@
+apply plugin: 'application'
+
+sourceSets {
+    main {
+        java {
+            srcDir 'server'
+        }
+    }
+}
+
+mainClassName = "sh.swisschili.chat.server.ChatServer"
+
+dependencies {
+    compile project(':util')
+}

@@ -1,8 +1,8 @@
 package sh.swisschili.chat.client;
 
 import io.grpc.ManagedChannelBuilder;
-import sh.swisschili.chat.ChatGrpc;
-import sh.swisschili.chat.ChatGrpc.ChatStub;
+import sh.swisschili.chat.util.ChatGrpc;
+import sh.swisschili.chat.util.ChatGrpc.ChatStub;
 import io.grpc.Channel;
 import sh.swisschili.chat.util.Constants;
 

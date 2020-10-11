@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package chat;
+
+option java_package = "sh.swisschili.chat";
+option java_outer_classname = "ChatProtos";
+
+message User {
+  string name = 1;
+  uint64 id = 2;
+}
+
+message Channel {
+  uint64 id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message Group {
+  string name = 1;
+  repeated User users = 2;
+  repeated Channel channels = 3;
+  uint64 id = 4;
+}
+
+message Message {
+  string body = 1;
+  User sender = 2;
+  // In milliseconds
+  int64 unixTime = 3;
+  uint64 id = 4;
+}
+
+message OutgoingMessage {
+  Message message = 1;
+  Channel channel = 2;
+}
+
+message MessageResponse {
+  // void
+}
+
+service Chat {
+  rpc GetMessages(Channel) returns (stream Message);
+  rpc SendMessage(OutgoingMessage) returns (MessageResponse);
+}

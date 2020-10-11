@@ -1,0 +1,32 @@
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.10.1'
+    }
+
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.25.0'
+        }
+    }
+
+    generateProtoTasks.generatedFilesBaseDir = "$projectDir/build/generated/sources/"
+
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+
+        ofSourceSet 'main'
+    }
+}
+
+sourceSets {
+    main {
+        proto {
+            srcDirs "$projectDir/src/main/proto/"
+        }
+        java {
+            srcDirs "$projectDir/build/generated/sources/"
+        }
+    }
+}

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package chat;
 
-option java_package = "sh.swisschili.chat";
+option java_package = "sh.swisschili.chat.util";
 option java_outer_classname = "ChatProtos";
 
 message User {

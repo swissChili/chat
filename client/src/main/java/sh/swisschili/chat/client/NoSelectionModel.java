@@ -1,4 +1,4 @@
-package sh.swisschili.chat;
+package sh.swisschili.chat.client;
 
 import javax.swing.*;
 

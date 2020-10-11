@@ -1,14 +1,13 @@
-package sh.swisschili.chat;
+package sh.swisschili.chat.client;
 
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-
 import org.jetbrains.annotations.*;
 
 import javax.swing.*;
 import java.awt.*;
 
-import sh.swisschili.chat.ChatProtos.*;
+import sh.swisschili.chat.util.ChatProtos.*;
 
 public class MessageCell implements ListCellRenderer<Message> {
     private JPanel rootPanel;

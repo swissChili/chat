@@ -1,4 +1,4 @@
-package sh.swisschili.chat;
+package sh.swisschili.chat.client;
 
 import com.github.weisj.darklaf.LafManager;
 import com.github.weisj.darklaf.theme.IntelliJTheme;
@@ -6,8 +6,10 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
-import sh.swisschili.chat.ChatGrpc.ChatStub;
-import sh.swisschili.chat.ChatProtos.*;
+import sh.swisschili.chat.util.ChatGrpc;
+import sh.swisschili.chat.util.ChatGrpc.ChatStub;
+import sh.swisschili.chat.util.ChatProtos.*;
+import sh.swisschili.chat.util.Constants;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,8 +47,8 @@ public class MainWindow {
         messages.setModel(messageModel);
 
         LOGGER.info("Connecting to chat server");
-        io.grpc.Channel channel = ManagedChannelBuilder.forAddress("localhost", 4776).usePlaintext().build();
-        chatStub = sh.swisschili.chat.ChatGrpc.newStub(channel);
+        io.grpc.Channel channel = ManagedChannelBuilder.forAddress("localhost", Constants.DEFAULT_SERVER_PORT).usePlaintext().build();
+        chatStub = ChatGrpc.newStub(channel);
 
         chatStub.getMessages(defaultChannel, new StreamObserver<Message>() {
             @Override

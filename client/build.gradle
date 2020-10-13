@@ -12,4 +12,5 @@ mainClassName = "sh.swisschili.chat.client.MainWindow"
 
 dependencies {
     compile project(':util')
+    compile group: 'com.jgoodies', name: 'jgoodies-forms', version: '1.6.0'
 }

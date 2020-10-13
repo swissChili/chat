@@ -7,11 +7,12 @@ option java_outer_classname = "ChatProtos";
 
 message User {
   string name = 1;
-  uint64 id = 2;
+  string id = 2;
+  string host = 3;
 }
 
 message Channel {
-  uint64 id = 1;
+  string id = 1;
   string name = 2;
   string description = 3;
 }
@@ -19,8 +20,7 @@ message Channel {
 message Group {
   string name = 1;
   repeated User users = 2;
-  repeated Channel channels = 3;
-  uint64 id = 4;
+  string id = 4;
 }
 
 message Message {
@@ -28,7 +28,7 @@ message Message {
   User sender = 2;
   // In milliseconds
   int64 unixTime = 3;
-  uint64 id = 4;
+  string id = 4;
 }
 
 message OutgoingMessage {
@@ -40,7 +40,57 @@ message MessageResponse {
   // void
 }
 
+message CreateGroupRequest {
+  string groupName = 1;
+}
+
+enum Status {
+  OK = 0;
+  PERMISSION_DENIED = 1;
+};
+
+message CreateGroupResponse {
+  Status status = 1;
+  Group group = 2;
+}
+
+message CreateChannelRequest {
+  Group group = 1;
+  string channelName = 2;
+}
+
+message CreateChannelResponse {
+  Status status = 1;
+  Channel channel = 2;
+}
+
+message AddUserRequest {
+  string name = 1;
+  string host = 2;
+}
+
+message AddUserResponse {
+  Status status = 1;
+  User user = 2;
+}
+
+message GroupChannelsResponse {
+  repeated Channel channels = 1;
+}
+
+message GroupByNameRequest {
+  string name = 1;
+}
+
 service Chat {
   rpc GetMessages(Channel) returns (stream Message);
   rpc SendMessage(OutgoingMessage) returns (MessageResponse);
+
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+  rpc CreateChannel(CreateChannelRequest) returns (CreateChannelResponse);
+
+  rpc AddUser(AddUserRequest) returns (AddUserResponse);
+
+  rpc GetGroupByName(GroupByNameRequest) returns (Group);
+  rpc GetGroupChannels(Group) returns (GroupChannelsResponse);
 }

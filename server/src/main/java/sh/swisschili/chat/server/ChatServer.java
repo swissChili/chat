@@ -19,7 +19,7 @@ public class ChatServer {
         this.port = port;
         server = ServerBuilder
                 .forPort(port)
-                .addService(new ChatService(mqHost, mqPort))
+                .addService(new ChatService(mqHost, mqPort, db))
                 .build();
     }
 

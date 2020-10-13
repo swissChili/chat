@@ -13,3 +13,7 @@ mainClassName = "sh.swisschili.chat.server.ChatServer"
 dependencies {
     compile project(':util')
 }
+
+test {
+    systemProperty 'db-url', System.getProperty('db-url')
+}

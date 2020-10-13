@@ -3,27 +3,30 @@ package sh.swisschili.chat.server;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.DeliverCallback;
+import com.rabbitmq.client.ConnectionFactory;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
+
 import sh.swisschili.chat.util.ChatGrpc;
 import sh.swisschili.chat.util.ChatProtos;
 
-import com.rabbitmq.client.ConnectionFactory;
-
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 public class ChatService extends ChatGrpc.ChatImplBase {
     private final Logger LOGGER = Logger.getLogger(ChatService.class.getName());
     private final Connection conn;
+    private final ServerDatabase db;
 
-    public ChatService(@NotNull String mqHost, int port) throws IOException, TimeoutException {
+    public ChatService(@NotNull String mqHost, int port, ServerDatabase db) throws IOException, TimeoutException {
         super();
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(mqHost);
         connectionFactory.setPort(port);
         conn = connectionFactory.newConnection();
+        this.db = db;
     }
 
     private Channel getChannel(String name) throws IOException {
@@ -75,5 +78,71 @@ public class ChatService extends ChatGrpc.ChatImplBase {
         }
         responseObserver.onNext(ChatProtos.MessageResponse.newBuilder().build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void createGroup(ChatProtos.CreateGroupRequest request, StreamObserver<ChatProtos.CreateGroupResponse> responseObserver) {
+        ChatProtos.Group group = db.createGroup(request.getGroupName());
+
+        LOGGER.info("Added group " + group);
+
+        ChatProtos.CreateGroupResponse response = ChatProtos.CreateGroupResponse.newBuilder()
+                .setStatus(ChatProtos.Status.OK)
+                .setGroup(group)
+                .build();
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void createChannel(ChatProtos.CreateChannelRequest request, StreamObserver<ChatProtos.CreateChannelResponse> responseObserver) {
+        ChatProtos.Channel channel = db.createChannel(request.getGroup(), request.getChannelName());
+
+        LOGGER.info("Added channel " + channel);
+
+        ChatProtos.CreateChannelResponse response = ChatProtos.CreateChannelResponse.newBuilder()
+                .setStatus(ChatProtos.Status.OK)
+                .setChannel(channel)
+                .build();
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void addUser(ChatProtos.AddUserRequest request, StreamObserver<ChatProtos.AddUserResponse> responseObserver) {
+        ChatProtos.User user = db.addUser(request.getName(), request.getHost());
+
+        LOGGER.info("Added user " + user.toString());
+
+        ChatProtos.AddUserResponse response = ChatProtos.AddUserResponse.newBuilder()
+                .setStatus(ChatProtos.Status.OK)
+                .setUser(user)
+                .build();
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getGroupChannels(ChatProtos.Group request, StreamObserver<ChatProtos.GroupChannelsResponse> responseObserver) {
+        List<ChatProtos.Channel> channels = db.getGroupChannels(request);
+        LOGGER.info(String.format("Got %d channels in group %s", channels.size(), request.getName()));
+
+        ChatProtos.GroupChannelsResponse response = ChatProtos.GroupChannelsResponse.newBuilder()
+                .addAllChannels(channels)
+                .build();
+
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getGroupByName(ChatProtos.GroupByNameRequest request, StreamObserver<ChatProtos.Group> responseObserver) {
+        try {
+            ChatProtos.Group g = db.getGroupByName(request.getName());
+            responseObserver.onNext(g);
+            responseObserver.onCompleted();
+        } catch (ClassNotFoundException e) {
+            responseObserver.onError(e);
+        }
     }
 }

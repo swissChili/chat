@@ -1,10 +1,10 @@
 package sh.swisschili.chat.client;
 
 import io.grpc.stub.StreamObserver;
-import sh.swisschili.chat.util.ChatGrpc;
 import sh.swisschili.chat.util.ChatProtos.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ServerGroup {
     private final String server;
@@ -14,10 +14,10 @@ public class ServerGroup {
     private final ErrorListener error;
     private final ChannelsReceivedListener listener;
 
-    private List<Channel> channels = null;
+    private List<ServerChannel> channels = null;
 
     public interface ChannelsReceivedListener {
-        void channelsReceived(List<Channel> channels);
+        void channelsReceived(List<ServerChannel> channels);
     }
 
     public interface ErrorListener {
@@ -46,10 +46,12 @@ public class ServerGroup {
             @Override
             public void onCompleted() {
                 pool.stubFor(server)
-                        .getGroupChannels(group, new StreamObserver<GroupChannelsResponse>() {
+                        .getGroupChannels(group, new StreamObserver<>() {
                             @Override
                             public void onNext(GroupChannelsResponse value) {
-                                channels = value.getChannelsList();
+                                channels = value.getChannelsList().stream()
+                                        .map(channel -> new ServerChannel(pool, server, channel))
+                                        .collect(Collectors.toList());
                             }
 
                             @Override

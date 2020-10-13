@@ -4,16 +4,12 @@ import com.github.weisj.darklaf.LafManager;
 import com.github.weisj.darklaf.theme.IntelliJTheme;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.stub.StreamObserver;
-import sh.swisschili.chat.util.ChatGrpc;
-import sh.swisschili.chat.util.ChatGrpc.ChatStub;
 import sh.swisschili.chat.util.ChatProtos.*;
-import sh.swisschili.chat.util.Constants;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Logger;
 
@@ -22,14 +18,16 @@ public class MainWindow {
     private JButton sendButton;
     private JTextField messageField;
     private JList<Message> messages;
-    private JList<Group> groups;
-    private JList<Channel> channels;
+    private JList<ServerGroup> groups;
+    private JList<ServerChannel> channels;
     private JList<User> users;
 
-    private final DefaultListModel<Message> messageModel = new DefaultListModel<>();
+    private final DefaultListModel<ServerChannel> channelModel = new DefaultListModel<>();
+    private final DefaultListModel<ServerGroup> groupModel = new DefaultListModel<>();
     private static final Logger LOGGER = Logger.getLogger(MainWindow.class.getName());
 
-    private final ChatStub chatStub;
+    private ServerChannel currentChannel = null;
+    private final ServerPool pool = new ServerPool();
 
     private static class GroupsPopUp extends JPopupMenu {
         JMenuItem addGroup;
@@ -60,37 +58,38 @@ public class MainWindow {
         sendButton.addActionListener(sendActionListener);
         messageField.addActionListener(sendActionListener);
         messages.setCellRenderer(new MessageCell());
-        messages.setModel(messageModel);
 
-        LOGGER.info("Connecting to chat server");
-        io.grpc.Channel channel = ManagedChannelBuilder.forAddress("localhost", Constants.DEFAULT_SERVER_PORT).usePlaintext().build();
-        chatStub = ChatGrpc.newStub(channel);
+        groups.setModel(groupModel);
 
-        chatStub.getMessages(defaultChannel, new StreamObserver<Message>() {
-            @Override
-            public void onNext(Message value) {
-                LOGGER.info("Received message from " + value.getSender());
-                messageModel.addElement(value);
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                LOGGER.warning("Received error " + t.toString());
-            }
-
-            @Override
-            public void onCompleted() {
-                LOGGER.warning("getMessages completed");
-            }
+        channels.setModel(channelModel);
+        channels.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
+        channels.addListSelectionListener(e -> {
+            LOGGER.info(String.format("Selection from %d to %d", e.getFirstIndex(), e.getLastIndex()));
+            ServerChannel channel = channels.getSelectedValue();
+            messages.setModel(channel.getMessageModel());
+            currentChannel = channel;
         });
     }
 
     private void groupAdded(String groupName, String server) {
         LOGGER.info(String.format("Group added: %s#%s", groupName, server));
+
+        groupModel.addElement(new ServerGroup(pool, server, groupName, this::onError, groupChannels -> {
+            SwingUtilities.invokeLater(() -> {
+                channelModel.clear();
+                channelModel.addAll(groupChannels);
+            });
+        }));
+    }
+
+    private void onError(Throwable t) {
+        SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(panel1, t.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+        });
     }
 
     protected void sendMessage() {
-        if (messageField.getText().isBlank())
+        if (messageField.getText().isBlank() || currentChannel == null)
             return;
 
         LOGGER.info("Message sent " + messageField.getText());
@@ -107,25 +106,7 @@ public class MainWindow {
 
         LOGGER.info("Sending message to server");
 
-        OutgoingMessage outgoingMessage = OutgoingMessage.newBuilder()
-                .setChannel(defaultChannel)
-                .setMessage(message)
-                .build();
-
-        chatStub.sendMessage(outgoingMessage, new StreamObserver<MessageResponse>() {
-            @Override
-            public void onNext(MessageResponse value) {
-            }
-
-            @Override
-            public void onError(Throwable t) {
-            }
-
-            @Override
-            public void onCompleted() {
-                LOGGER.info("Message sent successfully");
-            }
-        });
+        currentChannel.sendMessage(message);
     }
 
     public static void main(String[] args) {

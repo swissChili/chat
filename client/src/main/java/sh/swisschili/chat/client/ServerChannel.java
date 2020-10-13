@@ -15,7 +15,11 @@ public class ServerChannel {
 
     private static final Logger LOGGER = Logger.getLogger(ServerPool.class.getName());
 
-    public ServerChannel(ServerPool pool, String server, Channel channel) {
+    public interface MessageListener {
+        void onMessage(Message message);
+    }
+
+    public ServerChannel(ServerPool pool, String server, Channel channel, MessageListener listener) {
         this.pool = pool;
         this.channel = channel;
         stub = pool.stubFor(server);
@@ -24,6 +28,7 @@ public class ServerChannel {
             @Override
             public void onNext(Message value) {
                 messageModel.addElement(value);
+                listener.onMessage(value);
             }
 
             @Override

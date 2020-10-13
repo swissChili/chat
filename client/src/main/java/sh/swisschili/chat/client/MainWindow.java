@@ -1,9 +1,12 @@
 package sh.swisschili.chat.client;
 
 import com.github.weisj.darklaf.LafManager;
+import com.github.weisj.darklaf.theme.DarculaTheme;
 import com.github.weisj.darklaf.theme.IntelliJTheme;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import sh.swisschili.chat.util.ChatProtos.*;
 
 import javax.swing.*;
@@ -21,6 +24,9 @@ public class MainWindow {
     private JList<ServerGroup> groups;
     private JList<ServerChannel> channels;
     private JList<User> users;
+    private JTextField userName;
+    private JScrollPane messagesScrollPane;
+    private JPanel leftPanel;
 
     private final DefaultListModel<ServerChannel> channelModel = new DefaultListModel<>();
     private final DefaultListModel<ServerGroup> groupModel = new DefaultListModel<>();
@@ -55,6 +61,8 @@ public class MainWindow {
 
         messages.setSelectionModel(new NoSelectionModel());
 
+        leftPanel.setMinimumSize(new Dimension(320, 640));
+
         sendButton.addActionListener(sendActionListener);
         messageField.addActionListener(sendActionListener);
         messages.setCellRenderer(new MessageCell());
@@ -79,6 +87,11 @@ public class MainWindow {
                 channelModel.clear();
                 channelModel.addAll(groupChannels);
             });
+        }, message -> {
+            SwingUtilities.invokeLater(() -> {
+                JScrollBar bar = messagesScrollPane.getVerticalScrollBar();
+                bar.setValue(bar.getMaximum());
+            });
         }));
     }
 
@@ -94,7 +107,7 @@ public class MainWindow {
 
         LOGGER.info("Message sent " + messageField.getText());
 
-        User.Builder userBuilder = User.newBuilder().setName("Me").setId("0");
+        User.Builder userBuilder = User.newBuilder().setName(userName.getText()).setId("0");
 
         Message message = Message.newBuilder()
                 .setBody(messageField.getText())
@@ -138,28 +151,47 @@ public class MainWindow {
         splitPane2.setResizeWeight(1.0);
         splitPane1.setRightComponent(splitPane2);
         final JPanel panel2 = new JPanel();
-        panel2.setLayout(new GridLayoutManager(2, 3, new Insets(0, 0, 0, 0), -1, -1));
+        panel2.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         splitPane2.setLeftComponent(panel2);
-        messages = new JList();
-        panel2.add(messages, new GridConstraints(0, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
-        sendButton = new JButton();
-        sendButton.setText("Send");
-        panel2.add(sendButton, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JPanel panel3 = new JPanel();
+        panel3.setLayout(new FormLayout("fill:d:grow,left:4dlu:noGrow,fill:max(d;4px):noGrow", "center:d:grow"));
+        panel2.add(panel3, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         messageField = new JTextField();
         messageField.setText("");
-        panel2.add(messageField, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
-        final JPanel panel3 = new JPanel();
-        panel3.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        splitPane2.setRightComponent(panel3);
-        users = new JList();
-        panel3.add(users, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
+        CellConstraints cc = new CellConstraints();
+        panel3.add(messageField, cc.xy(1, 1, CellConstraints.FILL, CellConstraints.DEFAULT));
+        sendButton = new JButton();
+        sendButton.setText("Send");
+        panel3.add(sendButton, cc.xy(3, 1));
+        messagesScrollPane = new JScrollPane();
+        panel2.add(messagesScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        messages = new JList();
+        messagesScrollPane.setViewportView(messages);
         final JPanel panel4 = new JPanel();
-        panel4.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-        splitPane1.setLeftComponent(panel4);
-        groups = new JList();
-        panel4.add(groups, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
+        panel4.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        splitPane2.setRightComponent(panel4);
+        users = new JList();
+        panel4.add(users, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
+        leftPanel = new JPanel();
+        leftPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+        splitPane1.setLeftComponent(leftPanel);
+        final JPanel panel5 = new JPanel();
+        panel5.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:d:grow", "center:d:grow"));
+        leftPanel.add(panel5, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        final JLabel label1 = new JLabel();
+        label1.setText("Name");
+        panel5.add(label1, cc.xy(1, 1));
+        userName = new JTextField();
+        userName.setText("Unnamed");
+        panel5.add(userName, cc.xy(3, 1, CellConstraints.FILL, CellConstraints.DEFAULT));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        leftPanel.add(scrollPane1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         channels = new JList();
-        panel4.add(channels, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
+        scrollPane1.setViewportView(channels);
+        final JScrollPane scrollPane2 = new JScrollPane();
+        leftPanel.add(scrollPane2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        groups = new JList();
+        scrollPane2.setViewportView(groups);
     }
 
     /**

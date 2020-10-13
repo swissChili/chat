@@ -25,7 +25,7 @@ public class ServerGroup {
     }
 
     public ServerGroup(ServerPool pool, String server, String groupName, ErrorListener error,
-                       ChannelsReceivedListener listener) {
+                       ChannelsReceivedListener listener, ServerChannel.MessageListener messageListener) {
         this.server = server;
         this.pool = pool;
         this.error = error;
@@ -50,7 +50,7 @@ public class ServerGroup {
                             @Override
                             public void onNext(GroupChannelsResponse value) {
                                 channels = value.getChannelsList().stream()
-                                        .map(channel -> new ServerChannel(pool, server, channel))
+                                        .map(channel -> new ServerChannel(pool, server, channel, messageListener))
                                         .collect(Collectors.toList());
                             }
 

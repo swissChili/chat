@@ -24,25 +24,9 @@ allprojects {
     }
 
     dependencies {
-        // RPC
-        compile group: 'io.grpc', name: 'grpc-all', version: '1.25.0'
-        compile "javax.annotation:javax.annotation-api:1.3.2"
-
         compile 'org.jetbrains:annotations:19.0.0'
         testCompile group: 'junit', name: 'junit', version: '4.12'
 
         compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
-
-        compile "com.github.weisj:darklaf-core:latest.integration"
-        compile group: 'com.intellij', name: 'forms_rt', version: '7.0.3'
-
-        // Networking
-        compile group: 'com.rabbitmq', name: 'amqp-client', version: '5.9.0'
-
-        // Argument parser
-        compile group: 'com.beust', name: 'jcommander', version: '1.78'
-
-        // Database
-        compile group: 'org.mongodb', name: 'mongodb-driver', version: '3.12.7'
     }
 }

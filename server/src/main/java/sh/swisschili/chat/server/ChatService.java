@@ -38,7 +38,7 @@ public class ChatService extends ChatGrpc.ChatImplBase {
     @Override
     public void getMessages(ChatProtos.Channel request, StreamObserver<ChatProtos.Message> responseObserver) {
         try {
-            String exchangeName = "channel:" + request.getName();
+            String exchangeName = "sh.swisschili.chat.channel:" + request.getId();
             Channel channel = getChannel(exchangeName);
             String queueName = channel.queueDeclare().getQueue();
             channel.queueBind(queueName, exchangeName, "");
@@ -68,7 +68,7 @@ public class ChatService extends ChatGrpc.ChatImplBase {
     @Override
     public void sendMessage(ChatProtos.OutgoingMessage request, StreamObserver<ChatProtos.MessageResponse> responseObserver) {
         try {
-            String exchangeName = "channel:" + request.getChannel().getName();
+            String exchangeName = "sh.swisschili.chat.channel:" + request.getChannel().getId();
             Channel channel = getChannel(exchangeName);
 
             LOGGER.info("Sending message: " + request.getMessage().getBody());

@@ -28,7 +28,6 @@ public class MainWindow {
     private JScrollPane messagesScrollPane;
     private JPanel leftPanel;
 
-    private final DefaultListModel<ServerChannel> channelModel = new DefaultListModel<>();
     private final DefaultListModel<ServerGroup> groupModel = new DefaultListModel<>();
     private static final Logger LOGGER = Logger.getLogger(MainWindow.class.getName());
 
@@ -45,12 +44,6 @@ public class MainWindow {
         }
     }
 
-    private final Channel defaultChannel = Channel.newBuilder()
-            .setId("0")
-            .setName("test")
-            .setDescription("Test channel")
-            .build();
-
     public MainWindow() {
         $$$setupUI$$$();
 
@@ -61,19 +54,24 @@ public class MainWindow {
 
         messages.setSelectionModel(new NoSelectionModel());
 
-        leftPanel.setMinimumSize(new Dimension(320, 640));
+        leftPanel.setMinimumSize(new Dimension(320, 600));
 
         sendButton.addActionListener(sendActionListener);
         messageField.addActionListener(sendActionListener);
         messages.setCellRenderer(new MessageCell());
 
         groups.setModel(groupModel);
+        groups.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
+        groups.addListSelectionListener(e -> groupSelected());
 
-        channels.setModel(channelModel);
         channels.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
         channels.addListSelectionListener(e -> {
-            LOGGER.info(String.format("Selection from %d to %d", e.getFirstIndex(), e.getLastIndex()));
             ServerChannel channel = channels.getSelectedValue();
+            if (channel == null)
+                return;
+
+            LOGGER.info("Channel selected " + channel);
+
             messages.setModel(channel.getMessageModel());
             currentChannel = channel;
         });
@@ -83,16 +81,19 @@ public class MainWindow {
         LOGGER.info(String.format("Group added: %s#%s", groupName, server));
 
         groupModel.addElement(new ServerGroup(pool, server, groupName, this::onError, groupChannels -> {
-            SwingUtilities.invokeLater(() -> {
-                channelModel.clear();
-                channelModel.addAll(groupChannels);
-            });
-        }, message -> {
-            SwingUtilities.invokeLater(() -> {
-                JScrollBar bar = messagesScrollPane.getVerticalScrollBar();
-                bar.setValue(bar.getMaximum());
-            });
+            SwingUtilities.invokeLater(this::groupSelected);
         }));
+    }
+
+    private void groupSelected() {
+        ServerGroup selected = groups.getSelectedValue();
+        if (selected == null)
+            return;
+
+        LOGGER.info("Group selected " + selected);
+
+        channels.setModel(selected.getModel());
+        channels.setSelectedIndex(0);
     }
 
     private void onError(Throwable t) {

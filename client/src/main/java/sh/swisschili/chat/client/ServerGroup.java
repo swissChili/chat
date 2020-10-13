@@ -3,6 +3,7 @@ package sh.swisschili.chat.client;
 import io.grpc.stub.StreamObserver;
 import sh.swisschili.chat.util.ChatProtos.*;
 
+import javax.swing.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,7 @@ public class ServerGroup {
     private final ErrorListener error;
     private final ChannelsReceivedListener listener;
 
+    private final DefaultListModel<ServerChannel> model = new DefaultListModel<>();
     private List<ServerChannel> channels = null;
 
     public interface ChannelsReceivedListener {
@@ -25,7 +27,7 @@ public class ServerGroup {
     }
 
     public ServerGroup(ServerPool pool, String server, String groupName, ErrorListener error,
-                       ChannelsReceivedListener listener, ServerChannel.MessageListener messageListener) {
+                       ChannelsReceivedListener listener) {
         this.server = server;
         this.pool = pool;
         this.error = error;
@@ -50,8 +52,11 @@ public class ServerGroup {
                             @Override
                             public void onNext(GroupChannelsResponse value) {
                                 channels = value.getChannelsList().stream()
-                                        .map(channel -> new ServerChannel(pool, server, channel, messageListener))
+                                        .map(channel -> new ServerChannel(pool, server, channel))
                                         .collect(Collectors.toList());
+
+                                model.clear();
+                                model.addAll(channels);
                             }
 
                             @Override
@@ -69,6 +74,10 @@ public class ServerGroup {
 
         pool.stubFor(server)
                 .getGroupByName(GroupByNameRequest.newBuilder().setName(groupName).build(), observer);
+    }
+
+    public DefaultListModel<ServerChannel> getModel() {
+        return model;
     }
 
     @Override

@@ -12,4 +12,7 @@ mainClassName = "sh.swisschili.chat.client.MainWindow"
 
 dependencies {
     compile project(':util')
+
+    compile "com.github.weisj:darklaf-core:latest.integration"
+    compile group: 'com.intellij', name: 'forms_rt', version: '7.0.3'
 }

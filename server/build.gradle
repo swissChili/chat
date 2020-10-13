@@ -12,6 +12,15 @@ mainClassName = "sh.swisschili.chat.server.ChatServer"
 
 dependencies {
     compile project(':util')
+
+    // Networking
+    compile group: 'com.rabbitmq', name: 'amqp-client', version: '5.9.0'
+
+    // Argument parser
+    compile group: 'com.beust', name: 'jcommander', version: '1.78'
+
+    // Database
+    compile group: 'org.mongodb', name: 'mongodb-driver', version: '3.12.7'
 }
 
 test {

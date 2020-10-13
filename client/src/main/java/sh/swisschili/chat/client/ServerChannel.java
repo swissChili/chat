@@ -19,7 +19,7 @@ public class ServerChannel {
         void onMessage(Message message);
     }
 
-    public ServerChannel(ServerPool pool, String server, Channel channel, MessageListener listener) {
+    public ServerChannel(ServerPool pool, String server, Channel channel) {
         this.pool = pool;
         this.channel = channel;
         stub = pool.stubFor(server);
@@ -28,7 +28,6 @@ public class ServerChannel {
             @Override
             public void onNext(Message value) {
                 messageModel.addElement(value);
-                listener.onMessage(value);
             }
 
             @Override

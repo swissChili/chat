@@ -1,0 +1,14 @@
+image: debian/stable
+packages:
+  - openjdk-11-jdk
+sources:
+  - https://github.com/swissChili/chat
+tasks:
+  - jar: |
+      cd chat
+      ./gradlew shadowJar
+      cp client/build/libs/*.jar client.jar
+      cp server/build/libs/*.jar server.jar
+artifacts:
+  - chat/server.jar
+  - chat/client.jar

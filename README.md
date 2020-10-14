@@ -43,3 +43,14 @@ standard way.
 Each chat server has many groups. Each group can have many channels (like
 slack channels) and many users. Users can participate in many groups, in many
 chat servers at the same time, under the same identity.
+
+# Building from source
+
+```sh
+# Build an executable jar
+$ ./gradlew shadowJar
+# Only build the client
+$ ./gradlew :client:shadowJar
+# Build and run tests (requires MongoDB)
+$ ./gradlew build -Ddb-url=mongodb://user:password@host:27017/database
+```

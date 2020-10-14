@@ -3,6 +3,7 @@ package sh.swisschili.chat.client;
 import com.github.weisj.darklaf.LafManager;
 import com.github.weisj.darklaf.theme.DarculaTheme;
 import com.github.weisj.darklaf.theme.IntelliJTheme;
+import com.github.weisj.darklaf.theme.OneDarkTheme;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -13,8 +14,12 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 public class MainWindow {
     private JPanel panel1;
@@ -27,12 +32,17 @@ public class MainWindow {
     private JTextField userName;
     private JScrollPane messagesScrollPane;
     private JPanel leftPanel;
+    private JButton settingsButton;
+
+    private JFrame frame;
 
     private final DefaultListModel<ServerGroup> groupModel = new DefaultListModel<>();
     private static final Logger LOGGER = Logger.getLogger(MainWindow.class.getName());
 
     private ServerChannel currentChannel = null;
     private final ServerPool pool = new ServerPool();
+
+    private final Preferences preferences = Preferences.userNodeForPackage(getClass());
 
     private static class GroupsPopUp extends JPopupMenu {
         JMenuItem addGroup;
@@ -51,6 +61,8 @@ public class MainWindow {
                 .setVisible(true)));
 
         final ActionListener sendActionListener = e -> sendMessage();
+
+        userName.setText(preferences.get("user.name", "Unnamed"));
 
         messages.setSelectionModel(new NoSelectionModel());
 
@@ -75,14 +87,25 @@ public class MainWindow {
             messages.setModel(channel.getMessageModel());
             currentChannel = channel;
         });
+
+        settingsButton.addActionListener(e -> {
+            new SettingsDialog(frame).setVisible(true);
+        });
+        userName.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                super.focusLost(e);
+
+                preferences.put("user.name", userName.getText());
+            }
+        });
     }
 
     private void groupAdded(String groupName, String server) {
         LOGGER.info(String.format("Group added: %s#%s", groupName, server));
 
-        groupModel.addElement(new ServerGroup(pool, server, groupName, this::onError, groupChannels -> {
-            SwingUtilities.invokeLater(this::groupSelected);
-        }));
+        groupModel.addElement(new ServerGroup(pool, server, groupName, this::onError, groupChannels ->
+                SwingUtilities.invokeLater(this::groupSelected)));
     }
 
     private void groupSelected() {
@@ -123,12 +146,23 @@ public class MainWindow {
         currentChannel.sendMessage(message);
     }
 
+    public void setFrame(JFrame frame) {
+        this.frame = frame;
+    }
+
     public static void main(String[] args) {
-        LafManager.setTheme(new IntelliJTheme());
+        System.setProperty("darklaf.decorations", "false");
+        System.setProperty("darklaf.allowNativeCode", "true");
+
+        LafManager.setTheme(new OneDarkTheme());
         LafManager.install();
 
+        LafManager.addThemePreferenceChangeListener(new ThemeListener());
+
         JFrame frame = new JFrame("Chat");
-        frame.setContentPane(new MainWindow().panel1);
+        MainWindow mainWindow = new MainWindow();
+        mainWindow.setFrame(frame);
+        frame.setContentPane(mainWindow.panel1);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setMinimumSize(new Dimension(912, 640));
         frame.pack();
@@ -177,7 +211,7 @@ public class MainWindow {
         leftPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
         splitPane1.setLeftComponent(leftPanel);
         final JPanel panel5 = new JPanel();
-        panel5.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:d:grow", "center:d:grow"));
+        panel5.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:d:grow,left:4dlu:noGrow,fill:max(d;4px):noGrow", "center:d:grow"));
         leftPanel.add(panel5, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JLabel label1 = new JLabel();
         label1.setText("Name");
@@ -185,6 +219,9 @@ public class MainWindow {
         userName = new JTextField();
         userName.setText("Unnamed");
         panel5.add(userName, cc.xy(3, 1, CellConstraints.FILL, CellConstraints.DEFAULT));
+        settingsButton = new JButton();
+        settingsButton.setText("Settings");
+        panel5.add(settingsButton, cc.xy(5, 1));
         final JScrollPane scrollPane1 = new JScrollPane();
         leftPanel.add(scrollPane1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         channels = new JList();

@@ -1,25 +1,36 @@
 package sh.swisschili.chat.client;
 
+import com.github.weisj.darklaf.DarkLaf;
+import com.github.weisj.darklaf.components.border.DarkBorders;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import org.jetbrains.annotations.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Date;
 
 import sh.swisschili.chat.util.ChatProtos.*;
 
 public class MessageCell implements ListCellRenderer<Message> {
     private JPanel rootPanel;
-    private JLabel body;
+    private JTextPane body;
     private JLabel sender;
+    private JLabel time;
 
     public MessageCell() {
     }
 
     public MessageCell(@NotNull Message value) {
         body.setText(value.getBody());
-        sender.setText(value.getSender().getName() + " said:");
+        sender.setText(value.getSender().getName());
+        time.setText(new Date(value.getUnixTime()).toString());
+        Font f = sender.getFont();
+        sender.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
+
+        rootPanel.setBorder(DarkBorders.createLineBorder(1, 0, 0, 0));
     }
 
     @Override
@@ -44,12 +55,43 @@ public class MessageCell implements ListCellRenderer<Message> {
     private void $$$setupUI$$$() {
         rootPanel = new JPanel();
         rootPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
-        body = new JLabel();
-        body.setText("Label");
-        rootPanel.add(body, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:max(d;4px):noGrow", "center:d:grow"));
+        panel1.setEnabled(true);
+        rootPanel.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         sender = new JLabel();
         sender.setText("Sender");
-        rootPanel.add(sender, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(-1, 20), new Dimension(-1, 20), new Dimension(-1, 20), 0, false));
+        CellConstraints cc = new CellConstraints();
+        panel1.add(sender, cc.xy(1, 1));
+        time = new JLabel();
+        Font timeFont = this.$$$getFont$$$(null, -1, -1, time.getFont());
+        if (timeFont != null) time.setFont(timeFont);
+        time.setText("Time");
+        panel1.add(time, cc.xy(3, 1));
+        body = new JTextPane();
+        body.setEditable(true);
+        body.setEnabled(true);
+        body.putClientProperty("JEditorPane.honorDisplayProperties", Boolean.TRUE);
+        rootPanel.add(body, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
+        if (currentFont == null) return null;
+        String resultName;
+        if (fontName == null) {
+            resultName = currentFont.getName();
+        } else {
+            Font testFont = new Font(fontName, Font.PLAIN, 10);
+            if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+                resultName = fontName;
+            } else {
+                resultName = currentFont.getName();
+            }
+        }
+        return new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
     }
 
     /**

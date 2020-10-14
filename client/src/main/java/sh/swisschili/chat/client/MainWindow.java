@@ -1,23 +1,19 @@
 package sh.swisschili.chat.client;
 
 import com.github.weisj.darklaf.LafManager;
-import com.github.weisj.darklaf.theme.DarculaTheme;
-import com.github.weisj.darklaf.theme.IntelliJTheme;
 import com.github.weisj.darklaf.theme.OneDarkTheme;
+import com.github.weisj.darklaf.theme.SolarizedLightTheme;
+import com.github.weisj.darklaf.theme.info.PreferredThemeStyle;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import sh.swisschili.chat.util.ChatProtos.*;
+import sh.swisschili.chat.util.ChatProtos.Message;
+import sh.swisschili.chat.util.ChatProtos.User;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
+import java.awt.event.*;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
@@ -42,7 +38,7 @@ public class MainWindow {
     private ServerChannel currentChannel = null;
     private final ServerPool pool = new ServerPool();
 
-    private final Preferences preferences = Preferences.userNodeForPackage(getClass());
+    private static final Preferences preferences = Preferences.userNodeForPackage(MainWindow.class);
 
     private static class GroupsPopUp extends JPopupMenu {
         JMenuItem addGroup;
@@ -154,9 +150,10 @@ public class MainWindow {
         System.setProperty("darklaf.decorations", "false");
         System.setProperty("darklaf.allowNativeCode", "true");
 
-        LafManager.setTheme(new OneDarkTheme());
+        LafManager.installTheme(ThemeFactory.byName(preferences.get("theme.name", "IntelliJ")));
         LafManager.install();
 
+        LafManager.enabledPreferenceChangeReporting(true);
         LafManager.addThemePreferenceChangeListener(new ThemeListener());
 
         JFrame frame = new JFrame("Chat");
@@ -166,6 +163,13 @@ public class MainWindow {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setMinimumSize(new Dimension(912, 640));
         frame.pack();
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                super.windowClosed(e);
+                LafManager.enabledPreferenceChangeReporting(false);
+            }
+        });
         frame.setVisible(true);
     }
 

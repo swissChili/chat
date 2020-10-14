@@ -1,33 +1,60 @@
 package sh.swisschili.chat.client;
 
+import com.github.weisj.darklaf.DarkLaf;
+import com.github.weisj.darklaf.LafManager;
 import com.github.weisj.darklaf.components.border.DarkBorders;
 import com.github.weisj.darklaf.settings.ThemeSettings;
+import com.github.weisj.darklaf.theme.*;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 
 import javax.swing.*;
+import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 public class SettingsDialog extends JDialog {
     private JPanel rootPanel;
-    private JButton customizeThemeButton;
     private JPanel interfacePanel;
+    private JButton saveButton;
+    private JComboBox<Theme> themeComboBox;
+
+    private Preferences preferences = Preferences.userNodeForPackage(getClass());
+
+    private static Logger LOGGER = Logger.getLogger(SettingsDialog.class.getName());
 
     public SettingsDialog(Frame owner) {
         super(owner);
 
         add(rootPanel);
-        setMinimumSize(new Dimension(240, 120));
+        setMinimumSize(new Dimension(240, 240));
 
         interfacePanel.setBorder(BorderFactory.createTitledBorder(
                 DarkBorders.createLineBorder(1, 1, 1, 1),
                 "Interface"));
 
-        customizeThemeButton.addActionListener(e -> {
-            ThemeSettings.showSettingsDialog(this);
+        saveButton.addActionListener(e -> {
+            if (themeComboBox.getSelectedItem() != null)
+                preferences.put("theme.name", themeComboBox.getSelectedItem().toString());
+        });
+
+        DefaultComboBoxModel<Theme> themeModel = new DefaultComboBoxModel<>();
+        themeModel.addAll(Arrays.asList(new DarculaTheme(), new IntelliJTheme(), new SolarizedLightTheme(),
+                new SolarizedDarkTheme(), new OneDarkTheme(), new HighContrastLightTheme(), new HighContrastDarkTheme()));
+
+        themeComboBox.setModel(themeModel);
+
+        getRootPane().setDefaultButton(saveButton);
+        themeComboBox.addActionListener(e -> {
+            Theme currentTheme = (Theme) themeComboBox.getSelectedItem();
+            ThemeSettings themeSettings = ThemeSettings.getInstance();
+            themeSettings.setTheme(currentTheme);
+            themeSettings.apply();
         });
     }
 
@@ -51,16 +78,23 @@ public class SettingsDialog extends JDialog {
         final JScrollPane scrollPane1 = new JScrollPane();
         rootPanel.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         final JPanel panel1 = new JPanel();
-        panel1.setLayout(new GridLayoutManager(2, 1, new Insets(5, 5, 5, 5), -1, -1));
+        panel1.setLayout(new GridLayoutManager(3, 1, new Insets(5, 5, 5, 5), -1, -1));
         scrollPane1.setViewportView(panel1);
         interfacePanel = new JPanel();
         interfacePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
         panel1.add(interfacePanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        customizeThemeButton = new JButton();
-        customizeThemeButton.setText("Customize Theme");
-        interfacePanel.add(customizeThemeButton);
+        themeComboBox = new JComboBox();
+        interfacePanel.add(themeComboBox);
         final Spacer spacer1 = new Spacer();
         panel1.add(spacer1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        final JPanel panel2 = new JPanel();
+        panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+        panel1.add(panel2, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        saveButton = new JButton();
+        saveButton.setText("Save");
+        panel2.add(saveButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final Spacer spacer2 = new Spacer();
+        panel2.add(spacer2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
     }
 
     /**

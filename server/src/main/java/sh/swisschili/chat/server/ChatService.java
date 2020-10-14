@@ -13,10 +13,10 @@ import sh.swisschili.chat.util.ChatProtos;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
+import org.slf4j.*;
 
 public class ChatService extends ChatGrpc.ChatImplBase {
-    private final Logger LOGGER = Logger.getLogger(ChatService.class.getName());
+    private final Logger LOGGER = LoggerFactory.getLogger(ChatService.class.getName());
     private final Connection conn;
     private final ServerDatabase db;
 
@@ -60,7 +60,7 @@ public class ChatService extends ChatGrpc.ChatImplBase {
 
             channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {});
         } catch (IOException e) {
-            LOGGER.severe("Could not create RabbitMQ channel in getMessages");
+            LOGGER.error("Could not create RabbitMQ channel in getMessages");
             responseObserver.onError(e);
         }
     }
@@ -74,7 +74,7 @@ public class ChatService extends ChatGrpc.ChatImplBase {
             LOGGER.info("Sending message: " + request.getMessage().getBody());
             channel.basicPublish(exchangeName, "", null, request.getMessage().toByteArray());
         } catch (IOException e) {
-            LOGGER.severe("Could not create RabbitMQ channel in sendMessage");
+            LOGGER.error("Could not create RabbitMQ channel in sendMessage");
         }
         responseObserver.onNext(ChatProtos.MessageResponse.newBuilder().build());
         responseObserver.onCompleted();

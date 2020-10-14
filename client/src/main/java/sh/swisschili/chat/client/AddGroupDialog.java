@@ -9,6 +9,8 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AddGroupDialog extends JDialog {
     private JPanel rootPanel;
@@ -24,7 +26,7 @@ public class AddGroupDialog extends JDialog {
     public AddGroupDialog(AddGroupListener listener) {
         add(rootPanel);
 
-        setMinimumSize(new Dimension(300, 160));
+        setMinimumSize(new Dimension(500, 200));
 
         DocumentListener documentListener = new DocumentListener() {
             @Override
@@ -42,8 +44,18 @@ public class AddGroupDialog extends JDialog {
                 checkInputs();
             }
 
+            private final Pattern pattern = Pattern.compile("^[0-9a-zA-Z\\.\\-]+$");
+
+            private boolean isValid(String input) {
+                if (input.isBlank())
+                    return false;
+
+                Matcher matcher = pattern.matcher(input);
+                return matcher.matches();
+            }
+
             private void checkInputs() {
-                addButton.setEnabled(!groupName.getText().isBlank() && !server.getText().isBlank());
+                addButton.setEnabled(isValid(groupName.getText()) && isValid(server.getText()));
             }
         };
 
@@ -76,22 +88,22 @@ public class AddGroupDialog extends JDialog {
      */
     private void $$$setupUI$$$() {
         rootPanel = new JPanel();
-        rootPanel.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:d:grow", "center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow"));
+        rootPanel.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:d:grow", "center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow"));
         rootPanel.setEnabled(true);
         final JLabel label1 = new JLabel();
         label1.setText("Group Name");
         CellConstraints cc = new CellConstraints();
-        rootPanel.add(label1, cc.xy(1, 1));
+        rootPanel.add(label1, cc.xy(1, 3));
         final JLabel label2 = new JLabel();
         label2.setText("Server");
-        rootPanel.add(label2, cc.xy(1, 3));
+        rootPanel.add(label2, cc.xy(1, 7));
         groupName = new JTextField();
-        rootPanel.add(groupName, cc.xy(3, 1, CellConstraints.FILL, CellConstraints.DEFAULT));
+        rootPanel.add(groupName, cc.xy(3, 3, CellConstraints.FILL, CellConstraints.DEFAULT));
         server = new JTextField();
-        rootPanel.add(server, cc.xy(3, 3, CellConstraints.FILL, CellConstraints.DEFAULT));
+        rootPanel.add(server, cc.xy(3, 7, CellConstraints.FILL, CellConstraints.DEFAULT));
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new FormLayout("fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:max(d;4px):noGrow", "center:d:grow,top:4dlu:noGrow,center:max(d;4px):noGrow"));
-        rootPanel.add(panel1, cc.xy(3, 5));
+        rootPanel.add(panel1, cc.xy(3, 9));
         addButton = new JButton();
         addButton.setEnabled(false);
         addButton.setText("Add");
@@ -100,6 +112,12 @@ public class AddGroupDialog extends JDialog {
         cancelButton.setEnabled(true);
         cancelButton.setText("Cancel");
         panel1.add(cancelButton, cc.xy(3, 3));
+        final JLabel label3 = new JLabel();
+        label3.setText("Group names can only contain letters, numbers and dashes.");
+        rootPanel.add(label3, cc.xy(3, 1));
+        final JLabel label4 = new JLabel();
+        label4.setText("Enter the server IP or domain name");
+        rootPanel.add(label4, cc.xy(3, 5));
     }
 
     /**

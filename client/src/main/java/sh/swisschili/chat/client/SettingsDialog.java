@@ -15,7 +15,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
-import java.util.logging.Logger;
+import org.slf4j.*;
 import java.util.prefs.Preferences;
 
 public class SettingsDialog extends JDialog {
@@ -26,7 +26,7 @@ public class SettingsDialog extends JDialog {
 
     private Preferences preferences = Preferences.userNodeForPackage(getClass());
 
-    private static Logger LOGGER = Logger.getLogger(SettingsDialog.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(SettingsDialog.class.getName());
 
     public SettingsDialog(Frame owner) {
         super(owner);

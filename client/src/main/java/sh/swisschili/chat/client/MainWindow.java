@@ -14,7 +14,7 @@ import sh.swisschili.chat.util.ChatProtos.User;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.logging.Logger;
+import org.slf4j.*;
 import java.util.prefs.Preferences;
 
 public class MainWindow {
@@ -33,7 +33,7 @@ public class MainWindow {
     private JFrame frame;
 
     private final DefaultListModel<ServerGroup> groupModel = new DefaultListModel<>();
-    private static final Logger LOGGER = Logger.getLogger(MainWindow.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(MainWindow.class.getName());
 
     private ServerChannel currentChannel = null;
     private final ServerPool pool = new ServerPool();
@@ -153,9 +153,6 @@ public class MainWindow {
         LafManager.installTheme(ThemeFactory.byName(preferences.get("theme.name", "IntelliJ")));
         LafManager.install();
 
-        LafManager.enabledPreferenceChangeReporting(true);
-        LafManager.addThemePreferenceChangeListener(new ThemeListener());
-
         JFrame frame = new JFrame("Chat");
         MainWindow mainWindow = new MainWindow();
         mainWindow.setFrame(frame);
@@ -163,13 +160,6 @@ public class MainWindow {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setMinimumSize(new Dimension(912, 640));
         frame.pack();
-        frame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                super.windowClosed(e);
-                LafManager.enabledPreferenceChangeReporting(false);
-            }
-        });
         frame.setVisible(true);
     }
 

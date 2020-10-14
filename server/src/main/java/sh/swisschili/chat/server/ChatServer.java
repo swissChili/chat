@@ -8,12 +8,12 @@ import sh.swisschili.chat.util.Constants;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
+import org.slf4j.*;
 
 public class ChatServer {
     private final int port;
     private final Server server;
-    private static final Logger LOGGER = Logger.getLogger(ChatServer.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChatServer.class.getName());
 
     public ChatServer(String mqHost, int mqPort, int port, ServerDatabase db) throws IOException, TimeoutException {
         this.port = port;

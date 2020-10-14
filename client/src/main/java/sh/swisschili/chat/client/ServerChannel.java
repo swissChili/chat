@@ -5,7 +5,7 @@ import sh.swisschili.chat.util.ChatGrpc;
 import sh.swisschili.chat.util.ChatProtos.*;
 
 import javax.swing.*;
-import java.util.logging.Logger;
+import org.slf4j.*;
 
 public class ServerChannel {
     private final ServerPool pool;
@@ -13,7 +13,7 @@ public class ServerChannel {
     private final DefaultListModel<Message> messageModel = new DefaultListModel<>();
     private final ChatGrpc.ChatStub stub;
 
-    private static final Logger LOGGER = Logger.getLogger(ServerPool.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerPool.class.getName());
 
     public interface MessageListener {
         void onMessage(Message message);
@@ -32,7 +32,7 @@ public class ServerChannel {
 
             @Override
             public void onError(Throwable t) {
-                LOGGER.severe("Error getting messages " + t);
+                LOGGER.error("Error getting messages " + t);
             }
 
             @Override
@@ -52,7 +52,7 @@ public class ServerChannel {
 
                     @Override
                     public void onError(Throwable t) {
-                        LOGGER.severe("Message failed to send " + t);
+                        LOGGER.error("Message failed to send " + t);
                     }
 
                     @Override

@@ -15,11 +15,12 @@ public class ChatServer {
     private final Server server;
     private static final Logger LOGGER = LoggerFactory.getLogger(ChatServer.class.getName());
 
-    public ChatServer(String mqHost, int mqPort, int port, ServerDatabase db) throws IOException, TimeoutException {
+    public ChatServer(String host, String mqHost, int mqPort, int port, ServerDatabase db) throws IOException, TimeoutException {
         this.port = port;
         server = ServerBuilder
                 .forPort(port)
                 .addService(new ChatService(mqHost, mqPort, db))
+                .addService(new AuthService(db, host))
                 .build();
     }
 
@@ -40,6 +41,9 @@ public class ChatServer {
 
         @Parameter(names = { "--db-url", "-d" }, description = "MongoDB connection url", required = true)
         private String mongoUrl;
+
+        @Parameter(names = { "-H", "--host" }, description = "Host name of server (default: localhost)")
+        private String host = "localhost";
     }
 
     public static void main(String[] argv) throws IOException, TimeoutException {
@@ -52,6 +56,6 @@ public class ChatServer {
         LOGGER.info("Launching server");
 
         ServerDatabase db = new ServerDatabase(args.mongoUrl);
-        new ChatServer(args.mqHost, args.mqPort, args.port, db).start();
+        new ChatServer(args.host, args.mqHost, args.mqPort, args.port, db).start();
     }
 }

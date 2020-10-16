@@ -47,6 +47,8 @@ message CreateGroupRequest {
 enum Status {
   OK = 0;
   PERMISSION_DENIED = 1;
+  INVALID_REQUEST = 2;
+  INCORRECT_LOGIN = 3;
 };
 
 message CreateGroupResponse {
@@ -93,4 +95,38 @@ service Chat {
 
   rpc GetGroupByName(GroupByNameRequest) returns (Group);
   rpc GetGroupChannels(Group) returns (GroupChannelsResponse);
+}
+
+message SignInRequest {
+  string name = 1;
+  string password = 2;
+}
+
+message SignInResponse {
+  User user = 2;
+}
+
+message RegisterRequest {
+  string name = 1;
+  string password = 2;
+  string email = 3;
+  bytes publicKey = 4;
+  bytes privateKey = 5;
+}
+
+message Redirect {
+  string to = 1;
+  string message = 2;
+}
+
+message RegisterResponse {
+  oneof status {
+    Redirect redirect = 1;
+    User user = 2;
+  }
+}
+
+service Auth {
+  rpc SignIn(SignInRequest) returns (SignInResponse);
+  rpc Register(RegisterRequest) returns (stream RegisterResponse);
 }

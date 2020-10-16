@@ -11,7 +11,10 @@ import com.mongodb.client.model.Filters;
 
 import static com.mongodb.client.model.Filters.*;
 
+import com.mongodb.client.model.IndexOptions;
 import org.bson.BsonArray;
+import org.bson.BsonBinary;
+import org.bson.BsonBinaryReader;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -30,6 +33,15 @@ import java.util.function.Consumer;
 public class ServerDatabase {
     private final MongoCollection<Document> users;
     private final MongoCollection<Document> groups;
+    private final MongoCollection<Document> registered;
+
+    private final PasswordAuthentication auth = new PasswordAuthentication();
+
+    public static class UserNotFoundException extends Exception {
+    }
+
+    public static class UsernameRegisteredException extends Exception {
+    }
 
     public ServerDatabase(String url) {
         ConnectionString connectionString = new ConnectionString(url);
@@ -42,6 +54,7 @@ public class ServerDatabase {
 
         users = db.getCollection("users");
         groups = db.getCollection("groups");
+        registered = db.getCollection("registeredUsers");
     }
 
     /**
@@ -131,5 +144,41 @@ public class ServerDatabase {
         }
 
         return channels;
+    }
+
+    public void createUser(String name, String password, byte[] publicKey, byte[] privateKey) throws UsernameRegisteredException {
+        registered.createIndex(new Document("name", 1), new IndexOptions().unique(true));
+
+        try {
+            registered.insertOne(new Document("name", name)
+                    .append("password", auth.hash(password.toCharArray()))
+                    .append("publicKey", new BsonBinary(publicKey))
+                    .append("privateKey", new BsonBinary(privateKey)));
+        } catch (Exception e) {
+            throw new UsernameRegisteredException();
+        }
+    }
+
+    public boolean authenticateUser(String name, String password) throws UserNotFoundException {
+        Document user = registered.find(eq("name", name))
+                .projection(new Document("password", 1)
+                        .append("_id", 0)).first();
+
+        if (user == null)
+            throw new UserNotFoundException();
+
+        String pass = user.getString("password");
+        return auth.authenticate(password.toCharArray(), pass);
+    }
+
+    public byte[] getUserPublicKey(String name) throws UserNotFoundException {
+        Document user = registered.find(eq("name", name))
+                .projection(new Document("publicKey", 1)
+                        .append("_id", 0)).first();
+
+        if (user == null)
+            throw new UserNotFoundException();
+
+        return user.get("publicKey", BsonBinary.class).getData();
     }
 }

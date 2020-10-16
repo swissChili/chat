@@ -1,20 +1,20 @@
 package sh.swisschili.chat.client;
 
 import com.github.weisj.darklaf.LafManager;
-import com.github.weisj.darklaf.theme.OneDarkTheme;
-import com.github.weisj.darklaf.theme.SolarizedLightTheme;
-import com.github.weisj.darklaf.theme.info.PreferredThemeStyle;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.ChatProtos.Message;
 import sh.swisschili.chat.util.ChatProtos.User;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import org.slf4j.*;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.prefs.Preferences;
 
 public class MainWindow {
@@ -193,6 +193,7 @@ public class MainWindow {
         sendButton.setText("Send");
         panel3.add(sendButton, cc.xy(3, 1));
         messagesScrollPane = new JScrollPane();
+        messagesScrollPane.setHorizontalScrollBarPolicy(31);
         panel2.add(messagesScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         messages = new JList();
         messagesScrollPane.setViewportView(messages);

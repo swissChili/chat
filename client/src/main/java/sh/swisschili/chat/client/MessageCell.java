@@ -16,7 +16,7 @@ import sh.swisschili.chat.util.ChatProtos.*;
 
 public class MessageCell implements ListCellRenderer<Message> {
     private JPanel rootPanel;
-    private JTextPane body;
+    private JTextArea body;
     private JLabel sender;
     private JLabel time;
 
@@ -31,6 +31,7 @@ public class MessageCell implements ListCellRenderer<Message> {
         sender.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
 
         rootPanel.setBorder(DarkBorders.createLineBorder(1, 0, 0, 0));
+        body.setBorder(DarkBorders.createLineBorder(2, 2, 2, 2));
     }
 
     @Override
@@ -58,7 +59,7 @@ public class MessageCell implements ListCellRenderer<Message> {
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:max(d;4px):noGrow", "center:d:grow"));
         panel1.setEnabled(true);
-        rootPanel.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        rootPanel.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, 1, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         sender = new JLabel();
         sender.setText("Sender");
         CellConstraints cc = new CellConstraints();
@@ -68,10 +69,8 @@ public class MessageCell implements ListCellRenderer<Message> {
         if (timeFont != null) time.setFont(timeFont);
         time.setText("Time");
         panel1.add(time, cc.xy(3, 1));
-        body = new JTextPane();
-        body.setEditable(true);
-        body.setEnabled(true);
-        body.putClientProperty("JEditorPane.honorDisplayProperties", Boolean.TRUE);
+        body = new JTextArea();
+        body.setWrapStyleWord(true);
         rootPanel.add(body, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
     }
 

@@ -8,20 +8,20 @@
     <properties/>
     <border type="none"/>
     <children>
-      <grid id="33aba" layout-manager="FormLayout">
+      <grid id="94016" layout-manager="FormLayout">
         <rowspec value="center:d:grow"/>
         <colspec value="fill:d:noGrow"/>
         <colspec value="left:4dlu:noGrow"/>
         <colspec value="fill:max(d;4px):noGrow"/>
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="1" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <enabled value="true"/>
         </properties>
         <border type="none"/>
         <children>
-          <component id="a8d60" class="javax.swing.JLabel" binding="sender">
+          <component id="2a16e" class="javax.swing.JLabel" binding="sender">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
                 <minimum-size width="-1" height="20"/>
@@ -34,7 +34,7 @@
               <text value="Sender"/>
             </properties>
           </component>
-          <component id="2292e" class="javax.swing.JLabel" binding="time">
+          <component id="8b331" class="javax.swing.JLabel" binding="time">
             <constraints>
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
               <forms/>
@@ -46,19 +46,15 @@
           </component>
         </children>
       </grid>
-      <component id="6f51f" class="javax.swing.JTextPane" binding="body">
+      <component id="901d6" class="javax.swing.JTextArea" binding="body">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="50"/>
           </grid>
         </constraints>
         <properties>
-          <editable value="true"/>
-          <enabled value="true"/>
+          <wrapStyleWord value="true"/>
         </properties>
-        <clientProperties>
-          <JEditorPane.honorDisplayProperties class="java.lang.Boolean" value="true"/>
-        </clientProperties>
       </component>
     </children>
   </grid>

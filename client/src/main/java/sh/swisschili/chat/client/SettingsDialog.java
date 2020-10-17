@@ -10,6 +10,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -23,24 +24,37 @@ public class SettingsDialog extends JDialog {
     private JPanel interfacePanel;
     private JButton saveButton;
     private JComboBox<Theme> themeComboBox;
+    private JPanel accountPanel;
+    private JButton logInRegisterButton;
+    private JButton cancelButton;
+    private JPanel aboutPanel;
+    private JTextArea createdBySwissChiliGithubTextArea;
 
     private Preferences preferences = Preferences.userNodeForPackage(getClass());
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SettingsDialog.class.getName());
 
+    private static Border createTitledBorder(String title) {
+        return BorderFactory.createTitledBorder(
+                DarkBorders.createLineBorder(1, 1, 1, 1),
+                title);
+    }
+
     public SettingsDialog(Frame owner) {
         super(owner);
 
         add(rootPanel);
-        setMinimumSize(new Dimension(240, 240));
+        setMinimumSize(new Dimension(360, 300));
 
-        interfacePanel.setBorder(BorderFactory.createTitledBorder(
-                DarkBorders.createLineBorder(1, 1, 1, 1),
-                "Interface"));
+        interfacePanel.setBorder(createTitledBorder("Interface"));
+        accountPanel.setBorder(createTitledBorder("Account"));
+        aboutPanel.setBorder(createTitledBorder("About"));
 
         saveButton.addActionListener(e -> {
             if (themeComboBox.getSelectedItem() != null)
                 preferences.put("theme.name", themeComboBox.getSelectedItem().toString());
+
+            setVisible(false);
         });
 
         DefaultComboBoxModel<Theme> themeModel = new DefaultComboBoxModel<>();
@@ -55,6 +69,12 @@ public class SettingsDialog extends JDialog {
             ThemeSettings themeSettings = ThemeSettings.getInstance();
             themeSettings.setTheme(currentTheme);
             themeSettings.apply();
+        });
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisible(false);
+            }
         });
     }
 
@@ -78,23 +98,39 @@ public class SettingsDialog extends JDialog {
         final JScrollPane scrollPane1 = new JScrollPane();
         rootPanel.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         final JPanel panel1 = new JPanel();
-        panel1.setLayout(new GridLayoutManager(3, 1, new Insets(5, 5, 5, 5), -1, -1));
+        panel1.setLayout(new GridLayoutManager(5, 1, new Insets(5, 5, 5, 5), -1, -1));
         scrollPane1.setViewportView(panel1);
         interfacePanel = new JPanel();
         interfacePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-        panel1.add(interfacePanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel1.add(interfacePanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         themeComboBox = new JComboBox();
         interfacePanel.add(themeComboBox);
         final Spacer spacer1 = new Spacer();
-        panel1.add(spacer1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        panel1.add(spacer1, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         final JPanel panel2 = new JPanel();
-        panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-        panel1.add(panel2, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        saveButton = new JButton();
-        saveButton.setText("Save");
-        panel2.add(saveButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel2.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
+        panel1.add(panel2, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final Spacer spacer2 = new Spacer();
         panel2.add(spacer2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        cancelButton = new JButton();
+        cancelButton.setText("Cancel");
+        panel2.add(cancelButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        saveButton = new JButton();
+        saveButton.setText("Save");
+        panel2.add(saveButton, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        accountPanel = new JPanel();
+        accountPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        panel1.add(accountPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        logInRegisterButton = new JButton();
+        logInRegisterButton.setText("Log in/Register");
+        accountPanel.add(logInRegisterButton);
+        aboutPanel = new JPanel();
+        aboutPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        panel1.add(aboutPanel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        createdBySwissChiliGithubTextArea = new JTextArea();
+        createdBySwissChiliGithubTextArea.setEditable(false);
+        createdBySwissChiliGithubTextArea.setText("Created by swissChili: github.com/swissChili/chat");
+        aboutPanel.add(createdBySwissChiliGithubTextArea);
     }
 
     /**

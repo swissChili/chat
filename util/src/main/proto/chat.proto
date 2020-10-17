@@ -91,6 +91,7 @@ service Chat {
   rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
   rpc CreateChannel(CreateChannelRequest) returns (CreateChannelResponse);
 
+  // Unused
   rpc AddUser(AddUserRequest) returns (AddUserResponse);
 
   rpc GetGroupByName(GroupByNameRequest) returns (Group);

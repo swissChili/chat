@@ -3,6 +3,7 @@ package sh.swisschili.chat.client;
 import com.github.weisj.darklaf.LafManager;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import org.slf4j.Logger;
@@ -13,8 +14,6 @@ import sh.swisschili.chat.util.ChatProtos.User;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.util.prefs.Preferences;
 
 public class MainWindow {
@@ -25,20 +24,27 @@ public class MainWindow {
     private JList<ServerGroup> groups;
     private JList<ServerChannel> channels;
     private JList<User> users;
-    private JTextField userName;
     private JScrollPane messagesScrollPane;
     private JPanel leftPanel;
     private JButton settingsButton;
+    private JPanel userPanel;
 
     private JFrame frame;
+
+    private final UserComponent userComponent = new UserComponent();
 
     private final DefaultListModel<ServerGroup> groupModel = new DefaultListModel<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(MainWindow.class.getName());
 
     private ServerChannel currentChannel = null;
     private final ServerPool pool = new ServerPool();
+    private UserCredentials credentials;
 
     private static final Preferences preferences = Preferences.userNodeForPackage(MainWindow.class);
+
+    private void createUIComponents() {
+        userPanel = userComponent.getRootPanel();
+    }
 
     private static class GroupsPopUp extends JPopupMenu {
         JMenuItem addGroup;
@@ -58,9 +64,8 @@ public class MainWindow {
 
         final ActionListener sendActionListener = e -> sendMessage();
 
-        userName.setText(preferences.get("user.name", "Unnamed"));
-
         messages.setSelectionModel(new NoSelectionModel());
+        messagesScrollPane.setHorizontalScrollBar(null);
 
         leftPanel.setMinimumSize(new Dimension(320, 600));
 
@@ -86,14 +91,6 @@ public class MainWindow {
 
         settingsButton.addActionListener(e -> {
             new SettingsDialog(frame).setVisible(true);
-        });
-        userName.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusLost(FocusEvent e) {
-                super.focusLost(e);
-
-                preferences.put("user.name", userName.getText());
-            }
         });
     }
 
@@ -127,7 +124,7 @@ public class MainWindow {
 
         LOGGER.info("Message sent " + messageField.getText());
 
-        User.Builder userBuilder = User.newBuilder().setName(userName.getText()).setId("0");
+        User.Builder userBuilder = User.newBuilder().setName("asdf").setId("0");
 
         Message message = Message.newBuilder()
                 .setBody(messageField.getText())
@@ -171,6 +168,7 @@ public class MainWindow {
      * @noinspection ALL
      */
     private void $$$setupUI$$$() {
+        createUIComponents();
         panel1 = new JPanel();
         panel1.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         final JSplitPane splitPane1 = new JSplitPane();
@@ -206,17 +204,14 @@ public class MainWindow {
         leftPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
         splitPane1.setLeftComponent(leftPanel);
         final JPanel panel5 = new JPanel();
-        panel5.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:d:grow,left:4dlu:noGrow,fill:max(d;4px):noGrow", "center:d:grow"));
+        panel5.setLayout(new FormLayout("fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:d:grow,left:4dlu:noGrow,fill:max(d;4px):noGrow", "center:d:grow"));
         leftPanel.add(panel5, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        final JLabel label1 = new JLabel();
-        label1.setText("Name");
-        panel5.add(label1, cc.xy(1, 1));
-        userName = new JTextField();
-        userName.setText("Unnamed");
-        panel5.add(userName, cc.xy(3, 1, CellConstraints.FILL, CellConstraints.DEFAULT));
         settingsButton = new JButton();
         settingsButton.setText("Settings");
         panel5.add(settingsButton, cc.xy(5, 1));
+        panel5.add(userPanel, cc.xy(1, 1));
+        final Spacer spacer1 = new Spacer();
+        panel5.add(spacer1, cc.xy(3, 1, CellConstraints.FILL, CellConstraints.DEFAULT));
         final JScrollPane scrollPane1 = new JScrollPane();
         leftPanel.add(scrollPane1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         channels = new JList();

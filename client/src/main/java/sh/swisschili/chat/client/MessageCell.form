@@ -45,7 +45,10 @@
       </grid>
       <component id="19734" class="javax.swing.JTextArea" binding="body">
         <constraints border-constraint="Center"/>
-        <properties/>
+        <properties>
+          <editable value="true"/>
+          <lineWrap value="true"/>
+        </properties>
       </component>
     </children>
   </grid>

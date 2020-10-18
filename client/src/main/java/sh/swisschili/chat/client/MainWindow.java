@@ -6,6 +6,8 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import jiconfont.icons.font_awesome.FontAwesome;
+import jiconfont.swing.IconFontSwing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.ChatProtos.Message;
@@ -14,6 +16,11 @@ import sh.swisschili.chat.util.ChatProtos.User;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.security.KeyPair;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.prefs.Preferences;
 
 public class MainWindow {
@@ -37,8 +44,9 @@ public class MainWindow {
     private static final Logger LOGGER = LoggerFactory.getLogger(MainWindow.class.getName());
 
     private ServerChannel currentChannel = null;
-    private final ServerPool pool = new ServerPool();
+    private static final ServerPool pool = new ServerPool();
     private UserCredentials credentials;
+    private User currentUser;
 
     private static final Preferences preferences = Preferences.userNodeForPackage(MainWindow.class);
 
@@ -56,8 +64,11 @@ public class MainWindow {
         }
     }
 
-    public MainWindow() {
+    public MainWindow() throws UserCredentials.CredentialsNotFound {
         $$$setupUI$$$();
+
+        currentUser = UserCredentials.getUser();
+        userComponent.setUser(currentUser);
 
         groups.setComponentPopupMenu(new GroupsPopUp(e -> new AddGroupDialog(this::groupAdded)
                 .setVisible(true)));
@@ -66,6 +77,12 @@ public class MainWindow {
 
         messages.setSelectionModel(new NoSelectionModel());
         messagesScrollPane.setHorizontalScrollBar(null);
+
+        settingsButton.setText("");
+        settingsButton.setIcon(ColoredIcon.buildIcon(FontAwesome.COG, 14));
+
+        sendButton.setText("");
+        sendButton.setIcon(ColoredIcon.buildIcon(FontAwesome.PAPER_PLANE, 14));
 
         leftPanel.setMinimumSize(new Dimension(320, 600));
 
@@ -124,11 +141,9 @@ public class MainWindow {
 
         LOGGER.info("Message sent " + messageField.getText());
 
-        User.Builder userBuilder = User.newBuilder().setName("asdf").setId("0");
-
         Message message = Message.newBuilder()
                 .setBody(messageField.getText())
-                .setSender(userBuilder.build())
+                .setSender(currentUser)
                 .setUnixTime(System.currentTimeMillis())
                 .build();
 
@@ -143,13 +158,7 @@ public class MainWindow {
         this.frame = frame;
     }
 
-    public static void main(String[] args) {
-        System.setProperty("darklaf.decorations", "false");
-        System.setProperty("darklaf.allowNativeCode", "true");
-
-        LafManager.installTheme(ThemeFactory.byName(preferences.get("theme.name", "IntelliJ")));
-        LafManager.install();
-
+    private static void showMainWindow() throws UserCredentials.CredentialsNotFound {
         JFrame frame = new JFrame("Chat");
         MainWindow mainWindow = new MainWindow();
         mainWindow.setFrame(frame);
@@ -158,6 +167,62 @@ public class MainWindow {
         frame.setMinimumSize(new Dimension(912, 640));
         frame.pack();
         frame.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        IconFontSwing.register(FontAwesome.getIconFont());
+
+        System.setProperty("darklaf.decorations", "false");
+        System.setProperty("darklaf.allowNativeCode", "true");
+
+        LafManager.installTheme(ThemeFactory.byName(preferences.get("theme.name", "IntelliJ")));
+        LafManager.install();
+
+        if (!UserCredentials.userLoggedIn()) {
+            AtomicBoolean loggedIn = new AtomicBoolean(false);
+
+            JFrame loginFrame = new JFrame();
+            loginFrame.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    LOGGER.info("Login window closed");
+
+                    if (loggedIn.get())
+                        super.windowClosed(e);
+                    else {
+                        LOGGER.info("Login window closed, exiting");
+                        System.exit(0);
+                    }
+                }
+            });
+
+            KeyPair keys = UserCredentials.createUserKeys();
+
+            LoginDialog loginDialog = new LoginDialog(pool, "Welcome", loginFrame, keys, (dialog, user, password) -> {
+                SwingUtilities.invokeLater(() -> {
+                    LOGGER.info(String.format("Logged in %s@%s (%s)", user.getName(), user.getHost(), String.valueOf(password)));
+                    loggedIn.set(true);
+
+                    dialog.setVisible(false);
+
+                    UserCredentials.setUser(user);
+                    UserCredentials.setPassword(password);
+
+                    try {
+                        showMainWindow();
+                    } catch (UserCredentials.CredentialsNotFound e) {
+                        LOGGER.error("Credentials not found after login");
+                    }
+                });
+            });
+            loginDialog.setVisible(true);
+        } else {
+            try {
+                showMainWindow();
+            } catch (UserCredentials.CredentialsNotFound e) {
+                LOGGER.error("Credentials not found (this should never happen)");
+            }
+        }
     }
 
     /**

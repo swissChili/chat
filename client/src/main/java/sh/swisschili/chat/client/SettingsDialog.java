@@ -16,6 +16,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+
+import jiconfont.icons.font_awesome.FontAwesome;
+import jiconfont.swing.IconFontSwing;
 import org.slf4j.*;
 import java.util.prefs.Preferences;
 
@@ -30,7 +33,7 @@ public class SettingsDialog extends JDialog {
     private JPanel aboutPanel;
     private JTextArea createdBySwissChiliGithubTextArea;
 
-    private Preferences preferences = Preferences.userNodeForPackage(getClass());
+    private final Preferences preferences = Preferences.userNodeForPackage(getClass());
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SettingsDialog.class.getName());
 
@@ -57,6 +60,8 @@ public class SettingsDialog extends JDialog {
             setVisible(false);
         });
 
+        logInRegisterButton.setIcon(ColoredIcon.buildIcon(FontAwesome.USER_CIRCLE, 14));
+
         DefaultComboBoxModel<Theme> themeModel = new DefaultComboBoxModel<>();
         themeModel.addAll(Arrays.asList(new DarculaTheme(), new IntelliJTheme(), new SolarizedLightTheme(),
                 new SolarizedDarkTheme(), new OneDarkTheme(), new HighContrastLightTheme(), new HighContrastDarkTheme()));
@@ -70,11 +75,12 @@ public class SettingsDialog extends JDialog {
             themeSettings.setTheme(currentTheme);
             themeSettings.apply();
         });
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setVisible(false);
-            }
+        cancelButton.addActionListener(e ->
+                setVisible(false));
+        logInRegisterButton.addActionListener(e -> {
+            UserCredentials.clearUser();
+            // lol
+            System.exit(0);
         });
     }
 
@@ -122,7 +128,7 @@ public class SettingsDialog extends JDialog {
         accountPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
         panel1.add(accountPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         logInRegisterButton = new JButton();
-        logInRegisterButton.setText("Log in/Register");
+        logInRegisterButton.setText("Log out");
         accountPanel.add(logInRegisterButton);
         aboutPanel = new JPanel();
         aboutPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));

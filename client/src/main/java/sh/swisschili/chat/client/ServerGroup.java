@@ -47,7 +47,7 @@ public class ServerGroup {
 
             @Override
             public void onCompleted() {
-                pool.stubFor(server)
+                pool.chatStubFor(server)
                         .getGroupChannels(group, new StreamObserver<>() {
                             @Override
                             public void onNext(GroupChannelsResponse value) {
@@ -72,7 +72,7 @@ public class ServerGroup {
             }
         };
 
-        pool.stubFor(server)
+        pool.chatStubFor(server)
                 .getGroupByName(GroupByNameRequest.newBuilder().setName(groupName).build(), observer);
     }
 

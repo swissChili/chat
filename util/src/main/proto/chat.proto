@@ -110,7 +110,6 @@ message SignInResponse {
 message RegisterRequest {
   string name = 1;
   string password = 2;
-  string email = 3;
   bytes publicKey = 4;
   bytes privateKey = 5;
 }

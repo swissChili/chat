@@ -15,4 +15,6 @@ dependencies {
 
     compile "com.github.weisj:darklaf-core:latest.integration"
     compile group: 'com.intellij', name: 'forms_rt', version: '7.0.3'
+    compile group: 'com.github.jiconfont', name: 'jiconfont-swing', version: '1.0.1'
+    compile group: 'com.github.jiconfont', name: 'jiconfont-font_awesome', version: '4.7.0.1'
 }

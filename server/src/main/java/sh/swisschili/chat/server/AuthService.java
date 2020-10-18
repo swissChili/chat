@@ -21,12 +21,16 @@ public class AuthService extends AuthGrpc.AuthImplBase {
     public void signIn(ChatProtos.SignInRequest request, StreamObserver<ChatProtos.SignInResponse> responseObserver) {
         try {
             if (database.authenticateUser(request.getName(), request.getPassword())) {
+                LOGGER.info("User logged in");
+
                 responseObserver.onNext(ChatProtos.SignInResponse.newBuilder()
                         .setUser(ChatProtos.User.newBuilder()
                                 .setName(request.getName())
                                 .setHost(host).build())
                         .build());
                 responseObserver.onCompleted();
+            } else {
+                LOGGER.info("User failed to log in (invalid credentials)");
             }
         } catch (ServerDatabase.UserNotFoundException e) {
             responseObserver.onError(e);
@@ -38,6 +42,8 @@ public class AuthService extends AuthGrpc.AuthImplBase {
         try {
             database.createUser(request.getName(), request.getPassword(), request.getPublicKey().toByteArray(),
                     request.getPrivateKey().toByteArray());
+
+            LOGGER.info("Created user");
 
             responseObserver.onNext(ChatProtos.RegisterResponse.newBuilder()
                     .setUser(ChatProtos.User.newBuilder()

@@ -80,7 +80,7 @@
                   <component id="730e3" class="javax.swing.JButton" binding="logInRegisterButton" default-binding="true">
                     <constraints/>
                     <properties>
-                      <text value="Log in/Register"/>
+                      <text value="Log out"/>
                     </properties>
                   </component>
                 </children>

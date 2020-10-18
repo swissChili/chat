@@ -22,7 +22,7 @@ public class ServerChannel {
     public ServerChannel(ServerPool pool, String server, Channel channel) {
         this.pool = pool;
         this.channel = channel;
-        stub = pool.stubFor(server);
+        stub = pool.chatStubFor(server);
 
         stub.getMessages(channel, new StreamObserver<Message>() {
             @Override

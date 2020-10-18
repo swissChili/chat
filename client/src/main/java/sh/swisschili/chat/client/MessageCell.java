@@ -1,22 +1,14 @@
 package sh.swisschili.chat.client;
 
-import com.github.weisj.darklaf.DarkLaf;
 import com.github.weisj.darklaf.components.border.DarkBorders;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import sh.swisschili.chat.util.ChatProtos.Message;
 
 import javax.swing.*;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
 import java.awt.*;
-import java.awt.event.ContainerEvent;
-import java.awt.event.ContainerListener;
 import java.util.Date;
-
-import sh.swisschili.chat.util.ChatProtos.*;
 
 public class MessageCell implements ListCellRenderer<Message> {
     private JPanel rootPanel;
@@ -30,7 +22,6 @@ public class MessageCell implements ListCellRenderer<Message> {
     public MessageCell(@NotNull Message value) {
         $$$setupUI$$$();
 
-        System.out.printf("width: %d\n", body.getPreferredSize().width);
         body.setText(value.getBody());
         body.setLineWrap(true);
         body.setWrapStyleWord(true);
@@ -73,6 +64,8 @@ public class MessageCell implements ListCellRenderer<Message> {
         time.setText("Time");
         panel1.add(time, cc.xy(3, 1));
         body = new JTextArea();
+        body.setEditable(true);
+        body.setLineWrap(true);
         rootPanel.add(body, BorderLayout.CENTER);
     }
 

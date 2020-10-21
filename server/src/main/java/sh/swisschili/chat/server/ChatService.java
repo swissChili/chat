@@ -35,13 +35,18 @@ public class ChatService extends ChatGrpc.ChatImplBase {
         return channel;
     }
 
+    private String getQueue(Channel channel, String exchangeName) throws IOException {
+        String queueName = channel.queueDeclare().getQueue();
+        channel.queueBind(queueName, exchangeName, "");
+        return queueName;
+    }
+
     @Override
     public void getMessages(ChatProtos.Channel request, StreamObserver<ChatProtos.Message> responseObserver) {
         try {
-            String exchangeName = "sh.swisschili.chat.channel:" + request.getId();
+            String exchangeName = ServerConstants.getChannelExchange(request.getId());
             Channel channel = getChannel(exchangeName);
-            String queueName = channel.queueDeclare().getQueue();
-            channel.queueBind(queueName, exchangeName, "");
+            String queueName = getQueue(channel, exchangeName);
 
             LOGGER.info("Connected to RabbitMQ channel");
 
@@ -53,6 +58,7 @@ public class ChatService extends ChatGrpc.ChatImplBase {
                 try {
                     responseObserver.onNext(m);
                 } catch (Exception e) {
+                    LOGGER.info("Client disconnected");
                     // If the stream fails, unsubscribe from the message queue
                     channel.basicCancel(consumerTag);
                 }
@@ -68,7 +74,7 @@ public class ChatService extends ChatGrpc.ChatImplBase {
     @Override
     public void sendMessage(ChatProtos.OutgoingMessage request, StreamObserver<ChatProtos.MessageResponse> responseObserver) {
         try {
-            String exchangeName = "sh.swisschili.chat.channel:" + request.getChannel().getId();
+            String exchangeName = ServerConstants.getChannelExchange(request.getChannel().getId());
             Channel channel = getChannel(exchangeName);
 
             LOGGER.info("Sending message: " + request.getMessage().getBody());
@@ -110,7 +116,7 @@ public class ChatService extends ChatGrpc.ChatImplBase {
 
     @Override
     public void addUser(ChatProtos.AddUserRequest request, StreamObserver<ChatProtos.AddUserResponse> responseObserver) {
-        ChatProtos.User user = db.addUser(request.getName(), request.getHost());
+        ChatProtos.User user = db.getOrAddUser(request.getName(), request.getHost());
 
         LOGGER.info("Added user " + user.toString());
 
@@ -142,6 +148,47 @@ public class ChatService extends ChatGrpc.ChatImplBase {
             responseObserver.onNext(g);
             responseObserver.onCompleted();
         } catch (ClassNotFoundException e) {
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void setUserStatus(ChatProtos.SetUserStatusRequest request, StreamObserver<ChatProtos.SetUserStatusResponse> responseObserver) {
+        try {
+            String exchangeName = ServerConstants.getGroupUserStatusExchange(request.getGroup().getId());
+            Channel channel = getChannel(exchangeName);
+            channel.basicPublish(exchangeName, "", null, request.getStatus().toByteArray());
+
+            responseObserver.onNext(ChatProtos.SetUserStatusResponse.newBuilder().build());
+            responseObserver.onCompleted();
+        } catch (IOException e) {
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void getGroupUserStatuses(ChatProtos.GroupUserStatusRequest request, StreamObserver<ChatProtos.UserStatus> responseObserver) {
+        try {
+            String exchangeName = ServerConstants.getGroupUserStatusExchange(request.getGroup().getId());
+            Channel channel = getChannel(exchangeName);
+            String queueName = getQueue(channel, exchangeName);
+
+            for (ChatProtos.UserStatus status : db.getUserStatuses(request.getGroup())) {
+                responseObserver.onNext(status);
+            }
+
+            DeliverCallback callback = (consumerTag, message) -> {
+                ChatProtos.UserStatus status = ChatProtos.UserStatus.parseFrom(message.getBody());
+
+                try {
+                    responseObserver.onNext(status);
+                } catch (Exception e) {
+                    LOGGER.info("Client disconnected");
+                    channel.basicCancel(consumerTag);
+                }
+            };
+            channel.basicConsume(queueName, true, callback, consumerTag -> {});
+        } catch (IOException e) {
             responseObserver.onError(e);
         }
     }

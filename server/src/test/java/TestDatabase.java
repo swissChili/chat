@@ -17,7 +17,7 @@ public class TestDatabase {
 
     @Test
     public void addUser() {
-        User user = db.addUser("joe", "localhost");
+        User user = db.getOrAddUser("joe", "localhost");
         LOGGER.info("User id is " + user.getId());
 
         assert user.getId().length() > 4;

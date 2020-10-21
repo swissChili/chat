@@ -8,32 +8,26 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
-
-import static com.mongodb.client.model.Filters.*;
-
 import com.mongodb.client.model.IndexOptions;
 import org.bson.BsonArray;
 import org.bson.BsonBinary;
-import org.bson.BsonBinaryReader;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import sh.swisschili.chat.util.ChatProtos;
+import sh.swisschili.chat.util.ChatProtos.*;
 
-import sh.swisschili.chat.util.ChatProtos.Channel;
-import sh.swisschili.chat.util.ChatProtos.Group;
-import sh.swisschili.chat.util.ChatProtos.User;
-
-import javax.print.Doc;
-import javax.swing.event.DocumentListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
+
+import static com.mongodb.client.model.Filters.eq;
 
 public class ServerDatabase {
     private final MongoCollection<Document> users;
     private final MongoCollection<Document> groups;
     private final MongoCollection<Document> registered;
+    private final MongoCollection<Document> userStatuses;
 
     private final PasswordAuthentication auth = new PasswordAuthentication();
 
@@ -55,6 +49,7 @@ public class ServerDatabase {
         users = db.getCollection("users");
         groups = db.getCollection("groups");
         registered = db.getCollection("registeredUsers");
+        userStatuses = db.getCollection("userStatuses");
     }
 
     /**
@@ -102,10 +97,24 @@ public class ServerDatabase {
                 .build();
     }
 
-    public User addUser(String name, String host) {
+    public User getOrAddUser(String name, String host) {
+        Document queryDoc = new Document("name", name)
+                .append("host", host);
+
+        Document existing = users.find(queryDoc)
+                .projection(new Document())
+                .first();
+
+        if (existing != null) {
+            return User.newBuilder()
+                    .setId(existing.getObjectId("_id").toString())
+                    .setHost(host)
+                    .setName(name)
+                    .build();
+        }
+
         ObjectId userId = new ObjectId();
-        Document userDoc = new Document("name", name)
-                .append("host", host)
+        Document userDoc = new Document(queryDoc)
                 .append("_id", userId);
         users.insertOne(userDoc);
 
@@ -180,5 +189,47 @@ public class ServerDatabase {
             throw new UserNotFoundException();
 
         return user.get("publicKey", BsonBinary.class).getData();
+    }
+
+    public void setUserStatus(UserStatus status, Group group) {
+        User user = status.getUser();
+        int statusValue = -1;
+        if (!status.hasCustom()) {
+            statusValue = status.getPresenceValue();
+        }
+
+        Document userStatus = new Document("userId", new ObjectId(user.getId()))
+                .append("name", user.getName())
+                .append("host", user.getHost())
+                .append("statusValue", statusValue)
+                .append("groupId", new ObjectId(group.getId()));
+
+        if (status.hasCustom()) {
+            userStatus = userStatus.append("customStatus", status.getCustom().getName());
+        }
+
+        userStatuses.insertOne(userStatus);
+    }
+
+    public Iterable<UserStatus> getUserStatuses(Group group) {
+        return userStatuses.find(new Document("groupId", group.getId()))
+                .map(doc -> {
+                    User user = User.newBuilder()
+                            .setHost(doc.getString("host"))
+                            .setName(doc.getString("name"))
+                            .setId(doc.getObjectId("userId").toString())
+                            .build();
+                    UserStatus.Builder status = UserStatus.newBuilder()
+                            .setUser(user);
+                    int statusValue = doc.getInteger("statusValue", 0);
+                    if (statusValue == -1) {
+                        status.setCustom(CustomPresence.newBuilder()
+                                .setName(doc.getString("customStatus")).build());
+                    } else {
+                        status.setPresenceValue(statusValue);
+                    }
+
+                    return status.build();
+                });
     }
 }

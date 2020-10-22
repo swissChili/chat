@@ -72,6 +72,8 @@ public class MainWindow {
         currentUser = UserCredentials.getUser();
         userComponent.setUser(currentUser);
 
+        users.setCellRenderer(new UserStatusComponent.Renderer());
+
         groups.setComponentPopupMenu(new GroupsPopUp(e -> new AddGroupDialog(this::groupAdded)
                 .setVisible(true)));
 

@@ -39,10 +39,6 @@ public class ServerGroup {
         this.listener = listener;
         this.groupName = groupName;
 
-        userModel.add(UserStatus.newBuilder()
-                .setUser(User.newBuilder().setName("test user").build())
-                .build());
-
         ServerGroup serverGroup = this;
 
         StreamObserver<AddUserResponse> addUserObserver = new StreamObserver<>() {

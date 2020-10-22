@@ -17,6 +17,10 @@ public class ColoredIcon {
             color = Color.DARK_GRAY;
         else
             color = Color.LIGHT_GRAY;
+        return buildIcon(code, size, color);
+    }
+
+    public static Icon buildIcon(IconCode code, int size, Color color) {
         return IconFontSwing.buildIcon(code, size, color);
     }
 }

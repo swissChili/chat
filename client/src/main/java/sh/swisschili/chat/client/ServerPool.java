@@ -1,12 +1,11 @@
 package sh.swisschili.chat.client;
 
+import io.grpc.Channel;
 import io.grpc.ManagedChannelBuilder;
 import sh.swisschili.chat.util.AuthGrpc;
 import sh.swisschili.chat.util.AuthGrpc.AuthStub;
 import sh.swisschili.chat.util.ChatGrpc;
 import sh.swisschili.chat.util.ChatGrpc.ChatStub;
-import io.grpc.Channel;
-import sh.swisschili.chat.util.ChatProtos;
 import sh.swisschili.chat.util.Constants;
 
 import java.util.HashMap;

@@ -12,6 +12,7 @@ public class ServerChannel {
     private final Channel channel;
     private final DefaultListModel<Message> messageModel = new DefaultListModel<>();
     private final ChatGrpc.ChatStub stub;
+    private final User user;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerPool.class.getName());
 
@@ -19,9 +20,10 @@ public class ServerChannel {
         void onMessage(Message message);
     }
 
-    public ServerChannel(ServerPool pool, String server, Channel channel) {
+    public ServerChannel(ServerPool pool, String server, Channel channel, User user) {
         this.pool = pool;
         this.channel = channel;
+        this.user = user;
         stub = pool.chatStubFor(server);
 
         stub.getMessages(channel, new StreamObserver<Message>() {
@@ -73,5 +75,9 @@ public class ServerChannel {
 
     public DefaultListModel<Message> getMessageModel() {
         return messageModel;
+    }
+
+    public User getUser() {
+        return user;
     }
 }

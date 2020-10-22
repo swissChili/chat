@@ -8,10 +8,11 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import jiconfont.icons.font_awesome.FontAwesome;
 import jiconfont.swing.IconFontSwing;
+import org.intellij.lang.annotations.JdkConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.swisschili.chat.util.ChatProtos.Message;
-import sh.swisschili.chat.util.ChatProtos.User;
+import sh.swisschili.chat.util.ChatProtos;
+import sh.swisschili.chat.util.ChatProtos.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,7 +31,7 @@ public class MainWindow {
     private JList<Message> messages;
     private JList<ServerGroup> groups;
     private JList<ServerChannel> channels;
-    private JList<User> users;
+    private JList<UserStatus> users;
     private JScrollPane messagesScrollPane;
     private JPanel leftPanel;
     private JButton settingsButton;
@@ -46,7 +47,8 @@ public class MainWindow {
     private ServerChannel currentChannel = null;
     private static final ServerPool pool = new ServerPool();
     private UserCredentials credentials;
-    private User currentUser;
+    private final User currentUser;
+    private final Presence userPresence = Presence.ONLINE;
 
     private static final Preferences preferences = Preferences.userNodeForPackage(MainWindow.class);
 
@@ -77,6 +79,7 @@ public class MainWindow {
 
         messages.setSelectionModel(new NoSelectionModel());
         messagesScrollPane.setHorizontalScrollBar(null);
+        messagesScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         settingsButton.setText("");
         settingsButton.setIcon(ColoredIcon.buildIcon(FontAwesome.COG, 14));
@@ -114,8 +117,16 @@ public class MainWindow {
     private void groupAdded(String groupName, String server) {
         LOGGER.info(String.format("Group added: %s#%s", groupName, server));
 
-        groupModel.addElement(new ServerGroup(pool, server, groupName, this::onError, groupChannels ->
-                SwingUtilities.invokeLater(this::groupSelected)));
+        ServerGroup serverGroup = new ServerGroup(pool, server, groupName, currentUser, this::onError,
+                (sg, groupChannels) -> {
+            sg.setStatus(UserStatus.newBuilder()
+                    .setUser(currentUser)
+                    .setPresence(userPresence)
+                    .build());
+            SwingUtilities.invokeLater(this::groupSelected);
+        });
+
+        groupModel.addElement(serverGroup);
     }
 
     private void groupSelected() {
@@ -127,6 +138,7 @@ public class MainWindow {
 
         channels.setModel(selected.getModel());
         channels.setSelectedIndex(0);
+        users.setModel(selected.getUserModel());
     }
 
     private void onError(Throwable t) {
@@ -143,7 +155,7 @@ public class MainWindow {
 
         Message message = Message.newBuilder()
                 .setBody(messageField.getText())
-                .setSender(currentUser)
+                .setSender(currentChannel.getUser())
                 .setUnixTime(System.currentTimeMillis())
                 .build();
 

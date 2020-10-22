@@ -7,5 +7,11 @@
       <jdbc-driver>com.dbschema.MongoJdbcDriver</jdbc-driver>
       <jdbc-url>mongodb://localhost:27017/chat</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="chat@cluster0.rbmsv.mongodb.net" uuid="b3f30fe4-f776-44c2-b3f3-5ce6fb6db49a">
+      <driver-ref>mongo</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.dbschema.MongoJdbcDriver</jdbc-driver>
+      <jdbc-url>mongodb://cluster0.rbmsv.mongodb.net:27017/chat</jdbc-url>
+    </data-source>
   </component>
 </project>

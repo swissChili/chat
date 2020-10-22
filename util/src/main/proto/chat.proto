@@ -84,6 +84,37 @@ message GroupByNameRequest {
   string name = 1;
 }
 
+enum Presence {
+  ONLINE = 0;
+  AWAY = 1;
+  DND = 2; // do not disturb
+}
+
+message CustomPresence {
+  string name = 1;
+  int32 iconCode = 2;
+}
+
+message UserStatus {
+  oneof status {
+    Presence presence = 1;
+    CustomPresence custom = 2;
+  };
+  User user = 3;
+}
+
+message GroupUserStatusRequest {
+  Group group = 1;
+}
+
+message SetUserStatusRequest {
+  Group group = 1;
+  UserStatus status = 3;
+}
+
+message SetUserStatusResponse {
+}
+
 service Chat {
   rpc GetMessages(Channel) returns (stream Message);
   rpc SendMessage(OutgoingMessage) returns (MessageResponse);
@@ -91,11 +122,14 @@ service Chat {
   rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
   rpc CreateChannel(CreateChannelRequest) returns (CreateChannelResponse);
 
-  // Unused
+  // Will get User if already exists
   rpc AddUser(AddUserRequest) returns (AddUserResponse);
 
   rpc GetGroupByName(GroupByNameRequest) returns (Group);
   rpc GetGroupChannels(Group) returns (GroupChannelsResponse);
+
+  rpc GetGroupUserStatuses(GroupUserStatusRequest) returns (stream UserStatus);
+  rpc SetUserStatus(SetUserStatusRequest) returns (SetUserStatusResponse);
 }
 
 message SignInRequest {

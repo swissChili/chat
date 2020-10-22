@@ -1,6 +1,7 @@
 package sh.swisschili.chat.client;
 
 import io.grpc.stub.StreamObserver;
+import sh.swisschili.chat.util.ChatGrpc;
 import sh.swisschili.chat.util.ChatProtos.*;
 
 import javax.swing.*;
@@ -10,23 +11,27 @@ import java.util.stream.Collectors;
 public class ServerGroup {
     private final String server;
     private final String groupName;
-    private Group group = null;
+    private Group group;
     private final ServerPool pool;
     private final ErrorListener error;
     private final ChannelsReceivedListener listener;
 
     private final DefaultListModel<ServerChannel> model = new DefaultListModel<>();
+    private final StreamingListModel<String, UserStatus> userModel = new StreamingListModel<>(
+            status -> status.getUser().getName(), new UserStatusComparator(), StreamingListModel.SortDirection.DESCENDING);
+
     private List<ServerChannel> channels = null;
+    private User authorizedUser;
 
     public interface ChannelsReceivedListener {
-        void channelsReceived(List<ServerChannel> channels);
+        void channelsReceived(ServerGroup serverGroup, List<ServerChannel> channels);
     }
 
     public interface ErrorListener {
         void onError(Throwable error);
     }
 
-    public ServerGroup(ServerPool pool, String server, String groupName, ErrorListener error,
+    public ServerGroup(ServerPool pool, String server, String groupName, User user, ErrorListener error,
                        ChannelsReceivedListener listener) {
         this.server = server;
         this.pool = pool;
@@ -34,10 +39,16 @@ public class ServerGroup {
         this.listener = listener;
         this.groupName = groupName;
 
-        StreamObserver<Group> observer = new StreamObserver<Group>() {
+        userModel.add(UserStatus.newBuilder()
+                .setUser(User.newBuilder().setName("test user").build())
+                .build());
+
+        ServerGroup serverGroup = this;
+
+        StreamObserver<AddUserResponse> addUserObserver = new StreamObserver<>() {
             @Override
-            public void onNext(Group value) {
-                group = value;
+            public void onNext(AddUserResponse value) {
+                authorizedUser = value.getUser();
             }
 
             @Override
@@ -47,16 +58,84 @@ public class ServerGroup {
 
             @Override
             public void onCompleted() {
-                pool.chatStubFor(server)
-                        .getGroupChannels(group, new StreamObserver<>() {
-                            @Override
-                            public void onNext(GroupChannelsResponse value) {
-                                channels = value.getChannelsList().stream()
-                                        .map(channel -> new ServerChannel(pool, server, channel))
-                                        .collect(Collectors.toList());
+                StreamObserver<Group> observer = new StreamObserver<Group>() {
+                    @Override
+                    public void onNext(Group value) {
+                        group = value;
+                    }
 
-                                model.clear();
-                                model.addAll(channels);
+                    @Override
+                    public void onError(Throwable t) {
+                        error.onError(t);
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        pool.chatStubFor(server)
+                                .getGroupChannels(group, new StreamObserver<>() {
+                                    @Override
+                                    public void onNext(GroupChannelsResponse value) {
+                                        channels = value.getChannelsList().stream()
+                                                .map(channel -> new ServerChannel(pool, server, channel, authorizedUser))
+                                                .collect(Collectors.toList());
+
+                                        model.clear();
+                                        model.addAll(channels);
+                                    }
+
+                                    @Override
+                                    public void onError(Throwable t) {
+                                        error.onError(t);
+                                    }
+
+                                    @Override
+                                    public void onCompleted() {
+                                        listener.channelsReceived(serverGroup, channels);
+                                    }
+                                });
+
+                        pool.chatStubFor(server)
+                                .getGroupUserStatuses(GroupUserStatusRequest.newBuilder().setGroup(group).build(),
+                                        new StreamObserver<>() {
+                                            @Override
+                                            public void onNext(UserStatus value) {
+                                                userModel.add(value);
+                                            }
+
+                                            @Override
+                                            public void onError(Throwable t) {
+                                                error.onError(t);
+                                            }
+
+                                            @Override
+                                            public void onCompleted() {
+                                            }
+                                        });
+                    }
+                };
+
+                pool.chatStubFor(server)
+                        .getGroupByName(GroupByNameRequest.newBuilder().setName(groupName).build(), observer);
+            }
+        };
+
+        ChatGrpc.ChatStub stub = pool.chatStubFor(server);
+        stub.addUser(AddUserRequest.newBuilder()
+                        .setHost(user.getHost())
+                        .setName(user.getName())
+                        .build(),
+                addUserObserver);
+    }
+
+    public void setStatus(UserStatus status) {
+        pool.chatStubFor(server)
+                .setUserStatus(SetUserStatusRequest.newBuilder()
+                                .setGroup(group)
+                                .setStatus(status)
+                                .build(),
+                        new StreamObserver<>() {
+                            @Override
+                            public void onNext(SetUserStatusResponse value) {
                             }
 
                             @Override
@@ -66,18 +145,16 @@ public class ServerGroup {
 
                             @Override
                             public void onCompleted() {
-                                listener.channelsReceived(channels);
                             }
                         });
-            }
-        };
-
-        pool.chatStubFor(server)
-                .getGroupByName(GroupByNameRequest.newBuilder().setName(groupName).build(), observer);
     }
 
     public DefaultListModel<ServerChannel> getModel() {
         return model;
+    }
+
+    public ListModel<UserStatus> getUserModel() {
+        return userModel;
     }
 
     @Override

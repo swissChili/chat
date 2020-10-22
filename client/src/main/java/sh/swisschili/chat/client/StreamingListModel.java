@@ -40,7 +40,7 @@ public class StreamingListModel<K, T> implements ListModel<T> {
     /**
      * @param keyGetter  Used to get a unique, indexable key for each value
      * @param comparator Used to sort items
-     * @param direction The direction in which to sort items
+     * @param direction  The direction in which to sort items
      */
     public StreamingListModel(KeyGetter<K, T> keyGetter, Comparator<T> comparator, SortDirection direction) {
         this.keyGetter = keyGetter;
@@ -56,6 +56,12 @@ public class StreamingListModel<K, T> implements ListModel<T> {
         }
     }
 
+    /**
+     * Add a given value to the list, if its key (got from the KeyGetter) is not unique, the original value with that
+     * key will instead be replaced with the value provided.
+     *
+     * @param value The value to add
+     */
     public void add(T value) {
         K key = keyGetter.getKey(value);
         if (itemMap.containsKey(key)) {

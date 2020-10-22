@@ -111,3 +111,6 @@ gradle-app.setting
 # gradle/wrapper/gradle-wrapper.properties
 
 !server
+
+# Local test files
+**/src/main/**/*Test.java

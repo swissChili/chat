@@ -19,8 +19,8 @@ public class StreamingListModel<K, T> implements ListModel<T> {
     private final Comparator<T> comparator;
     private final SortDirection direction;
 
-    private final List<T> itemList = new LinkedList<>();
-    private final Map<K, T> itemMap = new Hashtable<>();
+    private final List<SharedContainer<T>> itemList = new LinkedList<>();
+    private final Map<K, SharedContainer<T>> itemMap = new Hashtable<>();
 
     public enum SortDirection {
         ASCENDING,
@@ -37,6 +37,22 @@ public class StreamingListModel<K, T> implements ListModel<T> {
         K getKey(T value);
     }
 
+    private static class SharedContainer<T> {
+        T value;
+
+        public SharedContainer(T value) {
+            this.value = value;
+        }
+
+        public T getValue() {
+            return value;
+        }
+
+        public void setValue(T value) {
+            this.value = value;
+        }
+    }
+
     /**
      * @param keyGetter  Used to get a unique, indexable key for each value
      * @param comparator Used to sort items
@@ -50,9 +66,9 @@ public class StreamingListModel<K, T> implements ListModel<T> {
 
     private boolean goesAfter(int index, T value) {
         if (direction.equals(SortDirection.ASCENDING)) {
-            return comparator.compare(itemList.get(index), value) < 1;
+            return comparator.compare(itemList.get(index).getValue(), value) < 1;
         } else {
-            return comparator.compare(itemList.get(index), value) > -1;
+            return comparator.compare(itemList.get(index).getValue(), value) > -1;
         }
     }
 
@@ -65,20 +81,22 @@ public class StreamingListModel<K, T> implements ListModel<T> {
     public void add(T value) {
         K key = keyGetter.getKey(value);
         if (itemMap.containsKey(key)) {
-            itemMap.put(key, value);
-            int index = itemList.indexOf(value);
+            itemMap.get(key).setValue(value);
 
             for (ListDataListener listener : listeners) {
-                listener.contentsChanged(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, index, index));
+                // FIXME: use the actual index instead of the whole list range
+                listener.contentsChanged(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, itemList.size()));
             }
 
             return;
         }
-        itemMap.put(key, value);
+
+        SharedContainer<T> shared = new SharedContainer<>(value);
+        itemMap.put(key, shared);
 
         for (int i = 0; i < itemList.size(); i++) {
             if (!goesAfter(i, value)) {
-                itemList.add(i, value);
+                itemList.add(i, shared);
 
                 for (ListDataListener listener : listeners) {
                     listener.intervalAdded(new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, i, i));
@@ -87,7 +105,7 @@ public class StreamingListModel<K, T> implements ListModel<T> {
                 return;
             }
         }
-        itemList.add(value);
+        itemList.add(shared);
     }
 
     @Override
@@ -97,7 +115,7 @@ public class StreamingListModel<K, T> implements ListModel<T> {
 
     @Override
     public T getElementAt(int index) {
-        return itemList.get(index);
+        return itemList.get(index).getValue();
     }
 
     @Override

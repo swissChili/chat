@@ -22,14 +22,27 @@ public class UserStatusComponent {
         status.setText("");
 
         Color color = Color.GREEN;
+        String presenceText = null;
         ChatProtos.Presence presence = userStatus.getPresence();
 
-        if (presence.equals(ChatProtos.Presence.AWAY))
+        if (presence.equals(ChatProtos.Presence.AWAY)) {
             color = Color.YELLOW;
-        else if (presence.equals(ChatProtos.Presence.DND))
+            presenceText = "Away";
+        } else if (presence.equals(ChatProtos.Presence.DND)) {
             color = Color.RED;
+            presenceText = "Do not disturb";
+        } else if (presence.equals(ChatProtos.Presence.ONLINE)) {
+            presenceText = "Online";
+        }
+
+        if (userStatus.hasCustom()) {
+            presenceText = userStatus.getCustom().getName();
+        }
 
         status.setIcon(ColoredIcon.buildIcon(FontAwesome.USER, 14, color));
+
+        if (presenceText != null)
+            rootPanel.setToolTipText(presenceText);
     }
 
     private void createUIComponents() {

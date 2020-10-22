@@ -36,6 +36,7 @@ public class MainWindow {
     private JPanel leftPanel;
     private JButton settingsButton;
     private JPanel userPanel;
+    private JComboBox<String> statusBox;
 
     private JFrame frame;
 
@@ -73,6 +74,38 @@ public class MainWindow {
         userComponent.setUser(currentUser);
 
         users.setCellRenderer(new UserStatusComponent.Renderer());
+
+        DefaultComboBoxModel<String> statusModel = new DefaultComboBoxModel<>();
+        statusModel.addAll(Arrays.asList("Online", "Away", "Do not disturb"));
+        statusBox.setModel(statusModel);
+
+        statusBox.addActionListener(e -> {
+            Presence presence = null;
+            String selected = (String) statusBox.getSelectedItem();
+            if (selected == null)
+                return;
+
+            switch (selected) {
+                case "Online":
+                    presence = Presence.ONLINE;
+                    break;
+                case "Away":
+                    presence = Presence.AWAY;
+                    break;
+                case "Do not disturb":
+                    presence = Presence.DND;
+            }
+
+            UserStatus.Builder builder = UserStatus.newBuilder();
+            if (presence == null) {
+                builder.setCustom(CustomPresence.newBuilder()
+                        .setName(selected).build());
+            } else {
+                builder.setPresence(presence);
+            }
+
+            updateStatus(builder.build());
+        });
 
         groups.setComponentPopupMenu(new GroupsPopUp(e -> new AddGroupDialog(this::groupAdded)
                 .setVisible(true)));
@@ -116,17 +149,23 @@ public class MainWindow {
         });
     }
 
+    private void updateStatus(UserStatus status) {
+        for (int i = 0; i < groupModel.size(); i++) {
+            groupModel.get(i).setStatus(status);
+        }
+    }
+
     private void groupAdded(String groupName, String server) {
         LOGGER.info(String.format("Group added: %s#%s", groupName, server));
 
         ServerGroup serverGroup = new ServerGroup(pool, server, groupName, currentUser, this::onError,
                 (sg, groupChannels) -> {
-            sg.setStatus(UserStatus.newBuilder()
-                    .setUser(currentUser)
-                    .setPresence(userPresence)
-                    .build());
-            SwingUtilities.invokeLater(this::groupSelected);
-        });
+                    sg.setStatus(UserStatus.newBuilder()
+                            .setUser(currentUser)
+                            .setPresence(userPresence)
+                            .build());
+                    SwingUtilities.invokeLater(this::groupSelected);
+                });
 
         groupModel.addElement(serverGroup);
     }
@@ -283,11 +322,14 @@ public class MainWindow {
         leftPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
         splitPane1.setLeftComponent(leftPanel);
         final JPanel panel5 = new JPanel();
-        panel5.setLayout(new FormLayout("fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:d:grow,left:4dlu:noGrow,fill:max(d;4px):noGrow", "center:d:grow"));
+        panel5.setLayout(new FormLayout("fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:d:grow,left:4dlu:noGrow,fill:max(d;4px):noGrow", "center:d:grow,top:4dlu:noGrow,center:max(d;4px):noGrow"));
         leftPanel.add(panel5, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         settingsButton = new JButton();
         settingsButton.setText("Settings");
         panel5.add(settingsButton, cc.xy(5, 1));
+        statusBox = new JComboBox();
+        statusBox.setEditable(true);
+        panel5.add(statusBox, cc.xyw(1, 3, 5));
         panel5.add(userPanel, cc.xy(1, 1));
         final Spacer spacer1 = new Spacer();
         panel5.add(spacer1, cc.xy(3, 1, CellConstraints.FILL, CellConstraints.DEFAULT));

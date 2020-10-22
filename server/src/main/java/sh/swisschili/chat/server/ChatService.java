@@ -159,6 +159,8 @@ public class ChatService extends ChatGrpc.ChatImplBase {
             Channel channel = getChannel(exchangeName);
             channel.basicPublish(exchangeName, "", null, request.getStatus().toByteArray());
 
+            LOGGER.info(String.format("Set user status %s", request.toString()));
+
             responseObserver.onNext(ChatProtos.SetUserStatusResponse.newBuilder().build());
             responseObserver.onCompleted();
         } catch (IOException e) {

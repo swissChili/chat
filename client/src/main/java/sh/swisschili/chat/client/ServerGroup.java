@@ -1,6 +1,8 @@
 package sh.swisschili.chat.client;
 
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.ChatGrpc;
 import sh.swisschili.chat.util.ChatProtos.*;
 
@@ -22,6 +24,8 @@ public class ServerGroup {
 
     private List<ServerChannel> channels = null;
     private User authorizedUser;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerGroup.class);
 
     public interface ChannelsReceivedListener {
         void channelsReceived(ServerGroup serverGroup, List<ServerChannel> channels);
@@ -95,6 +99,7 @@ public class ServerGroup {
                                         new StreamObserver<>() {
                                             @Override
                                             public void onNext(UserStatus value) {
+                                                LOGGER.info("Got user status " + value.toString());
                                                 userModel.add(value);
                                             }
 
@@ -124,6 +129,12 @@ public class ServerGroup {
     }
 
     public void setStatus(UserStatus status) {
+        status = UserStatus.newBuilder(status)
+                .setUser(authorizedUser)
+                .build();
+
+        LOGGER.info(String.format("Setting status: %s\n", status.toString()));
+
         pool.chatStubFor(server)
                 .setUserStatus(SetUserStatusRequest.newBuilder()
                                 .setGroup(group)

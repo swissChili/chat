@@ -115,6 +115,8 @@
             <children>
               <grid id="20148" layout-manager="FormLayout">
                 <rowspec value="center:d:grow"/>
+                <rowspec value="top:4dlu:noGrow"/>
+                <rowspec value="center:max(d;4px):noGrow"/>
                 <colspec value="fill:max(d;4px):noGrow"/>
                 <colspec value="left:4dlu:noGrow"/>
                 <colspec value="fill:d:grow"/>
@@ -135,6 +137,15 @@
                       <text value="Settings"/>
                     </properties>
                   </component>
+                  <component id="21231" class="javax.swing.JComboBox" binding="statusBox">
+                    <constraints>
+                      <grid row="2" column="0" row-span="1" col-span="5" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                      <forms/>
+                    </constraints>
+                    <properties>
+                      <editable value="true"/>
+                    </properties>
+                  </component>
                   <grid id="698a7" binding="userPanel" custom-create="true" layout-manager="GridBagLayout">
                     <constraints>
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -144,7 +155,7 @@
                     <border type="none"/>
                     <children/>
                   </grid>
-                  <hspacer id="adc69">
+                  <hspacer id="15bf">
                     <constraints>
                       <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                       <forms defaultalign-horz="false"/>

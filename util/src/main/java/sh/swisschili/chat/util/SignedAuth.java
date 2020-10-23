@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.prefs.Preferences;
 
 public class SignedAuth {
     private static final Logger LOGGER = LoggerFactory.getLogger(SignedAuth.class);

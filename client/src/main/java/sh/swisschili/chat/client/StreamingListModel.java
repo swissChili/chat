@@ -10,6 +10,10 @@ import java.util.*;
  * This class incrementally sorts items as they are added and supports O(1) updates of already existing items. It
  * operates under the assumption that the criteria on which items are sorted will not change.
  *
+ * The key refers to a unique identifier for each item. If an item is added with a key that is already present in the
+ * list, the index that held that key is updated to hold the new item. Otherwise, the key is inserted and sorted
+ * according to the provided Comparator.
+ *
  * @param <K> The unique key type of each item, returned by KeyGetter.getKey() and used internally in a hash table
  * @param <T> The type stored in the list
  */
@@ -31,8 +35,8 @@ public class StreamingListModel<K, T> implements ListModel<T> {
         /**
          * Get a unique identifier ("key") K for a type T
          *
-         * @param value the value to get the type for
-         * @return the unique key for that type
+         * @param value the value to get the key for
+         * @return the unique key for that value
          */
         K getKey(T value);
     }

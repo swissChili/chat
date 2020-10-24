@@ -34,6 +34,8 @@ message Message {
 message OutgoingMessage {
   Message message = 1;
   Channel channel = 2;
+
+  bytes signature = 3;
 }
 
 message MessageResponse {
@@ -160,7 +162,16 @@ message RegisterResponse {
   }
 }
 
+message PublicKeyRequest {
+  User user = 1;
+}
+
+message UserPublicKey {
+  bytes publicKey = 1;
+}
+
 service Auth {
   rpc SignIn(SignInRequest) returns (SignInResponse);
   rpc Register(RegisterRequest) returns (stream RegisterResponse);
+  rpc GetUserPublicKey(PublicKeyRequest) returns (UserPublicKey);
 }

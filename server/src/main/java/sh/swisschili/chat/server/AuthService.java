@@ -1,11 +1,15 @@
 package sh.swisschili.chat.server;
 
+import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.AuthGrpc;
 import sh.swisschili.chat.util.ChatGrpc;
 import sh.swisschili.chat.util.ChatProtos;
+import sh.swisschili.chat.util.SignedAuth;
+
+import java.security.spec.InvalidKeySpecException;
 
 public class AuthService extends AuthGrpc.AuthImplBase {
     private final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
@@ -53,6 +57,18 @@ public class AuthService extends AuthGrpc.AuthImplBase {
             responseObserver.onCompleted();
         } catch (ServerDatabase.UsernameRegisteredException e) {
             responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void getUserPublicKey(ChatProtos.PublicKeyRequest request, StreamObserver<ChatProtos.UserPublicKey> responseObserver) {
+        try {
+            byte[] bytes = database.getUserPublicKey(request.getUser().getName());
+            responseObserver.onNext(ChatProtos.UserPublicKey.newBuilder()
+                    .setPublicKey(ByteString.copyFrom(bytes)).build());
+            responseObserver.onCompleted();
+        } catch (ServerDatabase.UserNotFoundException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -32,11 +32,22 @@ public class SignedAuth {
         }
     }
 
-    public static byte[] sign(KeyPair keyPair, byte[] data) throws InvalidKeyException, SignatureException {
+    /**
+     * @param keyPair The keys to sign with
+     * @param data The data to sign
+     * @return The signature
+     * @throws InvalidKeyException If the key is invalid
+     * @throws SignatureException If the signature failed for some other reason
+     * @apiNote In the case of verifying a multi-part protobuf message, the member bytes should be passed in numerical
+     * order by protobuf implementation
+     */
+    public static byte[] sign(KeyPair keyPair, byte[]... data) throws InvalidKeyException, SignatureException {
         try {
             Signature signature = Signature.getInstance("SHA1withDSA", "SUN");
             signature.initSign(keyPair.getPrivate());
-            signature.update(data);
+            for (byte[] dataChunk : data) {
+                signature.update(dataChunk);
+            }
             return signature.sign();
         } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
             e.printStackTrace();
@@ -45,11 +56,22 @@ public class SignedAuth {
         }
     }
 
-    public static boolean verify(PublicKey publicKey, byte[] data, byte[] signature) {
+    /**
+     * @param publicKey The public key to verify with
+     * @param signature The signature to verify
+     * @param data      The data to verify
+     * @return Is the signature valid?
+     * @apiNote In the case of verifying a multi-part protobuf message, the member bytes should be passed in numerical
+     * order by protobuf implementation
+     */
+    public static boolean verify(PublicKey publicKey, byte[] signature, byte[]... data) {
         try {
             Signature sig = Signature.getInstance("SHA1withDSA", "SUN");
             sig.initVerify(publicKey);
-            sig.update(data);
+
+            for (byte[] dataChunk : data) {
+                sig.update(dataChunk);
+            }
             return sig.verify(signature);
         } catch (Exception e) {
             return false;

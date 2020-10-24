@@ -8,11 +8,10 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import jiconfont.icons.font_awesome.FontAwesome;
 import jiconfont.swing.IconFontSwing;
-import org.intellij.lang.annotations.JdkConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.swisschili.chat.util.ChatProtos;
 import sh.swisschili.chat.util.ChatProtos.*;
+import sh.swisschili.chat.util.ServerPool;
 
 import javax.swing.*;
 import java.awt.*;

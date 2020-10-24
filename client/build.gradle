@@ -23,8 +23,6 @@ configurations.all {
 dependencies {
     compile project(':util')
 
-//    implementation("com.github.weisj:darklaf-core:2.4.10")
-
     implementation("com.github.weisj:darklaf-core:latest.integration") {
         changing = true
     }

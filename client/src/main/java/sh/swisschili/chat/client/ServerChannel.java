@@ -6,6 +6,7 @@ import sh.swisschili.chat.util.ChatProtos.*;
 
 import javax.swing.*;
 import org.slf4j.*;
+import sh.swisschili.chat.util.ServerPool;
 
 public class ServerChannel {
     private final ServerPool pool;

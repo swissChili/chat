@@ -9,6 +9,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import io.grpc.stub.StreamObserver;
 import sh.swisschili.chat.util.AuthGrpc;
 import sh.swisschili.chat.util.ChatProtos;
+import sh.swisschili.chat.util.ServerPool;
 
 import javax.swing.*;
 import java.awt.*;

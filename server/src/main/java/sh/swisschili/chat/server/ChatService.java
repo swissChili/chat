@@ -6,19 +6,32 @@ import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.ConnectionFactory;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
-
+import org.slf4j.*;
 import sh.swisschili.chat.util.ChatGrpc;
 import sh.swisschili.chat.util.ChatProtos;
+import sh.swisschili.chat.util.*;
 
 import java.io.IOException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
-import org.slf4j.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ChatService extends ChatGrpc.ChatImplBase {
     private final Logger LOGGER = LoggerFactory.getLogger(ChatService.class.getName());
     private final Connection conn;
     private final ServerDatabase db;
+    private final ServerPool pool = new ServerPool();
+    private final Map<ChatProtos.User, PublicKey> keys = new HashMap<>();
+    private final ReadWriteLock keysLock = new ReentrantReadWriteLock();
+
+    private boolean allowUnsignedMessages = false;
 
     public ChatService(@NotNull String mqHost, int port, ServerDatabase db) throws IOException, TimeoutException {
         super();
@@ -27,6 +40,53 @@ public class ChatService extends ChatGrpc.ChatImplBase {
         connectionFactory.setPort(port);
         conn = connectionFactory.newConnection();
         this.db = db;
+    }
+
+    private CompletableFuture<PublicKey> getUserPublicKey(ChatProtos.User user) {
+        CompletableFuture<PublicKey> future = new CompletableFuture<>();
+
+        Lock lock = keysLock.readLock();
+        boolean containsKey = keys.containsKey(user);
+
+        if (containsKey) {
+            future.complete(keys.get(user));
+            lock.unlock();
+        } else {
+            lock.unlock();
+            StreamObserver<ChatProtos.UserPublicKey> listener = new StreamObserver<ChatProtos.UserPublicKey>() {
+                @Override
+                public void onNext(ChatProtos.UserPublicKey value) {
+                    try {
+                        PublicKey publicKey = SignedAuth.pubKeyFromBytes(value.getPublicKey().toByteArray());
+
+                        Lock writeLock = keysLock.writeLock();
+                        keys.put(user, publicKey);
+                        writeLock.unlock();
+
+                        future.complete(publicKey);
+                    } catch (InvalidKeySpecException e) {
+                        LOGGER.warn(String.format("Could not decode public key for %s", user.getName()));
+                        onError(e);
+                    }
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    future.completeExceptionally(t);
+                }
+
+                @Override
+                public void onCompleted() {
+                }
+            };
+
+            pool.authStubFor(user.getHost())
+                    .getUserPublicKey(ChatProtos.PublicKeyRequest.newBuilder()
+                            .setUser(user).build(),
+                            listener);
+        }
+
+        return future;
     }
 
     private Channel getChannel(String name) throws IOException {
@@ -73,17 +133,37 @@ public class ChatService extends ChatGrpc.ChatImplBase {
 
     @Override
     public void sendMessage(ChatProtos.OutgoingMessage request, StreamObserver<ChatProtos.MessageResponse> responseObserver) {
-        try {
-            String exchangeName = ServerConstants.getChannelExchange(request.getChannel().getId());
-            Channel channel = getChannel(exchangeName);
+        CompletableFuture<PublicKey> publicKeyFuture = getUserPublicKey(request.getMessage().getSender());
 
-            LOGGER.info("Sending message: " + request.getMessage().getBody());
-            channel.basicPublish(exchangeName, "", null, request.getMessage().toByteArray());
-        } catch (IOException e) {
-            LOGGER.error("Could not create RabbitMQ channel in sendMessage");
-        }
-        responseObserver.onNext(ChatProtos.MessageResponse.newBuilder().build());
-        responseObserver.onCompleted();
+        publicKeyFuture.thenAccept(publicKey -> {
+            if (!allowUnsignedMessages) {
+                if (!SignedAuth.verify(publicKey, request.getSignature().toByteArray(), request.getMessage().toByteArray(),
+                        request.getChannel().toByteArray())
+                ) {
+                    responseObserver.onError(new SignedAuthenticationError());
+                    return;
+                }
+            }
+
+            try {
+                String exchangeName = ServerConstants.getChannelExchange(request.getChannel().getId());
+                Channel channel = getChannel(exchangeName);
+
+                LOGGER.info("Sending message: " + request.getMessage().getBody());
+                channel.basicPublish(exchangeName, "", null, request.getMessage().toByteArray());
+            } catch (IOException e) {
+                LOGGER.error("Could not create RabbitMQ channel in sendMessage");
+                responseObserver.onError(e);
+            }
+
+            responseObserver.onNext(ChatProtos.MessageResponse.newBuilder().build());
+            responseObserver.onCompleted();
+        }).exceptionally(t -> {
+            LOGGER.warn("getUserPubicKey returned a failure");
+            responseObserver.onError(t);
+
+            return null;
+        });
     }
 
     @Override
@@ -193,5 +273,9 @@ public class ChatService extends ChatGrpc.ChatImplBase {
         } catch (IOException e) {
             responseObserver.onError(e);
         }
+    }
+
+    public void setAllowUnsignedMessages(boolean allowUnsignedMessages) {
+        this.allowUnsignedMessages = allowUnsignedMessages;
     }
 }

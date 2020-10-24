@@ -15,11 +15,13 @@ public class ChatServer {
     private final Server server;
     private static final Logger LOGGER = LoggerFactory.getLogger(ChatServer.class.getName());
 
-    public ChatServer(String host, String mqHost, int mqPort, int port, ServerDatabase db) throws IOException, TimeoutException {
+    public ChatServer(String host, String mqHost, int mqPort, int port, ServerDatabase db, boolean unsafe) throws IOException, TimeoutException {
         this.port = port;
+        ChatService chatService = new ChatService(mqHost, mqPort, db);
+        chatService.setAllowUnsignedMessages(unsafe);
         server = ServerBuilder
                 .forPort(port)
-                .addService(new ChatService(mqHost, mqPort, db))
+                .addService(chatService)
                 .addService(new AuthService(db, host))
                 .build();
     }
@@ -44,6 +46,9 @@ public class ChatServer {
 
         @Parameter(names = { "-H", "--host" }, description = "Host name of server (default: localhost)")
         private String host = "localhost";
+
+        @Parameter(names = { "--unsafe", "-u" }, description = "Forego signature validation (DO NOT use in production)")
+        private Boolean unsafe = false;
     }
 
     public static void main(String[] argv) throws IOException, TimeoutException {
@@ -56,6 +61,7 @@ public class ChatServer {
         LOGGER.info("Launching server");
 
         ServerDatabase db = new ServerDatabase(args.mongoUrl);
-        new ChatServer(args.host, args.mqHost, args.mqPort, args.port, db).start();
+        ChatServer server = new ChatServer(args.host, args.mqHost, args.mqPort, args.port, db, args.unsafe);
+        server.start();
     }
 }

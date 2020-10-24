@@ -1,7 +1,5 @@
 package sh.swisschili.chat.client;
 
-import com.github.weisj.darklaf.LafManager;
-import com.github.weisj.darklaf.theme.info.ColorToneRule;
 import com.github.weisj.darklaf.icons.IconLoader;
 import jiconfont.IconCode;
 import jiconfont.swing.IconFontSwing;

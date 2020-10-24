@@ -46,7 +46,6 @@ public class MainWindow {
 
     private ServerChannel currentChannel = null;
     private static final ServerPool pool = new ServerPool();
-    private UserCredentials credentials;
     private final User currentUser;
     private final Presence userPresence = Presence.ONLINE;
 
@@ -60,7 +59,7 @@ public class MainWindow {
         JMenuItem addGroup;
 
         public GroupsPopUp(ActionListener addGroupListener) {
-            addGroup = new JMenuItem("Add group");
+            addGroup = new JMenuItem("Add group", ColoredIcon.buildIcon(FontAwesome.PLUS, 14));
             addGroup.addActionListener(addGroupListener);
             add(addGroup);
         }
@@ -203,7 +202,11 @@ public class MainWindow {
 
         LOGGER.info("Sending message to server");
 
-        currentChannel.sendMessage(message);
+        try {
+            currentChannel.sendMessage(message, UserCredentials.getUserKeys());
+        } catch (UserCredentials.CredentialsNotFound e) {
+            onError(e);
+        }
     }
 
     public void setFrame(JFrame frame) {

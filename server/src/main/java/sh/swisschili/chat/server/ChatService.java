@@ -45,21 +45,29 @@ public class ChatService extends ChatGrpc.ChatImplBase {
     private CompletableFuture<PublicKey> getUserPublicKey(ChatProtos.User user) {
         CompletableFuture<PublicKey> future = new CompletableFuture<>();
 
+        LOGGER.info("Getting public key for " + user);
+
         Lock lock = keysLock.readLock();
+        lock.lock();
         boolean containsKey = keys.containsKey(user);
 
         if (containsKey) {
+            LOGGER.info("Public key cached");
             future.complete(keys.get(user));
             lock.unlock();
         } else {
             lock.unlock();
-            StreamObserver<ChatProtos.UserPublicKey> listener = new StreamObserver<ChatProtos.UserPublicKey>() {
+            LOGGER.info("Public key not cached, querying server for details");
+
+            StreamObserver<ChatProtos.UserPublicKey> listener = new StreamObserver<>() {
                 @Override
                 public void onNext(ChatProtos.UserPublicKey value) {
                     try {
+                        LOGGER.info("Got public key from server");
                         PublicKey publicKey = SignedAuth.pubKeyFromBytes(value.getPublicKey().toByteArray());
 
                         Lock writeLock = keysLock.writeLock();
+                        writeLock.lock();
                         keys.put(user, publicKey);
                         writeLock.unlock();
 
@@ -77,6 +85,7 @@ public class ChatService extends ChatGrpc.ChatImplBase {
 
                 @Override
                 public void onCompleted() {
+                    LOGGER.info("Completed public key request");
                 }
             };
 
@@ -140,6 +149,7 @@ public class ChatService extends ChatGrpc.ChatImplBase {
                 if (!SignedAuth.verify(publicKey, request.getSignature().toByteArray(), request.getMessage().toByteArray(),
                         request.getChannel().toByteArray())
                 ) {
+                    LOGGER.info("Signature invalid, throwing SignedAuthenticationError");
                     responseObserver.onError(new SignedAuthenticationError());
                     return;
                 }

@@ -1,5 +1,6 @@
 package sh.swisschili.chat.client;
 
+import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import sh.swisschili.chat.util.ChatGrpc;
 import sh.swisschili.chat.util.ChatProtos.*;
@@ -7,6 +8,11 @@ import sh.swisschili.chat.util.ChatProtos.*;
 import javax.swing.*;
 import org.slf4j.*;
 import sh.swisschili.chat.util.ServerPool;
+import sh.swisschili.chat.util.SignedAuth;
+
+import java.security.KeyException;
+import java.security.KeyPair;
+import java.security.SignatureException;
 
 public class ServerChannel {
     private final ServerPool pool;
@@ -44,25 +50,31 @@ public class ServerChannel {
         });
     }
 
-    public void sendMessage(Message message) {
-        stub.sendMessage(OutgoingMessage.newBuilder()
-                        .setMessage(message)
-                        .setChannel(channel).build(),
-                new StreamObserver<MessageResponse>() {
-                    @Override
-                    public void onNext(MessageResponse value) {
-                    }
+    public void sendMessage(Message message, KeyPair keys) {
+        try {
+            byte[] signature = SignedAuth.sign(keys, message.toByteArray(), channel.toByteArray());
 
-                    @Override
-                    public void onError(Throwable t) {
-                        LOGGER.error("Message failed to send " + t);
-                    }
+            stub.sendMessage(OutgoingMessage.newBuilder()
+                            .setMessage(message)
+                            .setChannel(channel)
+                            .setSignature(ByteString.copyFrom(signature)).build(),
+                    new StreamObserver<MessageResponse>() {
+                        @Override
+                        public void onNext(MessageResponse value) {
+                        }
 
-                    @Override
-                    public void onCompleted() {
-                        LOGGER.info("Message sent successfully");
-                    }
-                });
+                        @Override
+                        public void onError(Throwable t) {
+                            LOGGER.error("Message failed to send " + t);
+                        }
+
+                        @Override
+                        public void onCompleted() {
+                            LOGGER.info("Message sent successfully");
+                        }
+                    });
+        } catch (KeyException | SignatureException ignored) {
+        }
     }
 
     @Override

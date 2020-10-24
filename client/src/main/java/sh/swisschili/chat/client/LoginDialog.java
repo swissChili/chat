@@ -10,6 +10,7 @@ import io.grpc.stub.StreamObserver;
 import sh.swisschili.chat.util.AuthGrpc;
 import sh.swisschili.chat.util.ChatProtos;
 import sh.swisschili.chat.util.ServerPool;
+import sh.swisschili.chat.util.SignedAuth;
 
 import javax.swing.*;
 import java.awt.*;
@@ -88,8 +89,8 @@ public class LoginDialog extends JDialog {
             ChatProtos.RegisterRequest request = ChatProtos.RegisterRequest.newBuilder()
                     .setName(username.getText())
                     .setPassword(String.valueOf(password.getPassword()))
-                    .setPublicKey(ByteString.copyFrom(keys.getPublic().getEncoded()))
-                    .setPrivateKey(ByteString.copyFrom(keys.getPrivate().getEncoded()))
+                    .setPublicKey(ByteString.copyFrom(SignedAuth.pubKeyToBytes(keys.getPublic())))
+                    .setPrivateKey(ByteString.copyFrom(SignedAuth.privateKeyToBytes(keys.getPrivate())))
                     .build();
 
             stub.register(request, new StreamObserver<>() {

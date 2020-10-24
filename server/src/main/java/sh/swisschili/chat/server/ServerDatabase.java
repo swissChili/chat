@@ -12,6 +12,7 @@ import com.mongodb.client.model.IndexOptions;
 import org.bson.BsonArray;
 import org.bson.BsonBinary;
 import org.bson.Document;
+import org.bson.types.Binary;
 import org.bson.types.ObjectId;
 import sh.swisschili.chat.util.ChatProtos;
 import sh.swisschili.chat.util.ChatProtos.*;
@@ -188,7 +189,7 @@ public class ServerDatabase {
         if (user == null)
             throw new UserNotFoundException();
 
-        return user.get("publicKey", BsonBinary.class).getData();
+        return user.get("publicKey", Binary.class).getData();
     }
 
     public void setUserStatus(UserStatus status, Group group) {

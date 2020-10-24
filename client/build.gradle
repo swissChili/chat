@@ -27,6 +27,7 @@ dependencies {
         changing = true
     }
     implementation("com.github.weisj:darklaf-property-loader:latest.integration")
+    runtime group: 'com.github.weisj', name: 'darklaf-theme', version: '2.4.10'
     compile group: 'com.intellij', name: 'forms_rt', version: '7.0.3'
     compile group: 'com.github.jiconfont', name: 'jiconfont-swing', version: '1.0.1'
     compile group: 'com.github.jiconfont', name: 'jiconfont-font_awesome', version: '4.7.0.1'

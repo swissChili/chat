@@ -75,8 +75,11 @@ public class UserCredentials extends SignedAuth {
         byte[] privBytes = preferences.getByteArray("user.credentials.privateKey", new byte[]{});
         byte[] pubBytes = preferences.getByteArray("user.credentials.publicKey", new byte[]{});
 
+        LOGGER.info(String.format("Got keys: %s, %s", new String(privBytes, 0, 10),
+                new String(pubBytes, 0, 10)));
+
         try {
-            PrivateKey privKey = privKeyFromBytes(privBytes);
+            PrivateKey privKey = privateKeyFromBytes(privBytes);
             PublicKey pubKey = pubKeyFromBytes(pubBytes);
 
             return new KeyPair(pubKey, privKey);
@@ -87,8 +90,8 @@ public class UserCredentials extends SignedAuth {
 
     public static KeyPair createUserKeys() {
         KeyPair keys = generateKeyPair();
-        preferences.putByteArray("user.credentials.privateKey", keys.getPrivate().getEncoded());
-        preferences.putByteArray("user.credentials.publicKey", keys.getPublic().getEncoded());
+        preferences.putByteArray("user.credentials.privateKey", privateKeyToBytes(keys.getPrivate()));
+        preferences.putByteArray("user.credentials.publicKey", pubKeyToBytes(keys.getPublic()));
 
         return keys;
     }

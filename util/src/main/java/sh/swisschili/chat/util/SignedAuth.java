@@ -5,17 +5,24 @@ import org.slf4j.LoggerFactory;
 
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 public class SignedAuth {
     private static final Logger LOGGER = LoggerFactory.getLogger(SignedAuth.class);
     private static KeyFactory keyFactory;
 
-    public SignedAuth() {
+    static {
         try {
             keyFactory = KeyFactory.getInstance("DSA", "SUN");
-        } catch (Exception ignored) {
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            e.printStackTrace();
         }
+    }
+
+    public SignedAuth() {
+        throw new AssertionError("Cannot instantiate SignedAuth");
     }
 
     public static KeyPair generateKeyPair() {
@@ -78,21 +85,21 @@ public class SignedAuth {
         }
     }
 
-    public byte[] pubKeyToBytes(PublicKey publicKey) {
+    public static byte[] pubKeyToBytes(PublicKey publicKey) {
         return publicKey.getEncoded();
     }
 
     public static PublicKey pubKeyFromBytes(byte[] bytes) throws InvalidKeySpecException {
-        X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(bytes);
+        KeySpec pubKeySpec = new X509EncodedKeySpec(bytes);
         return keyFactory.generatePublic(pubKeySpec);
     }
 
-    public static byte[] privKeyToBytes(PrivateKey key) {
-        return key.getEncoded();
+    public static byte[] privateKeyToBytes(PrivateKey key) {
+        return new PKCS8EncodedKeySpec(key.getEncoded()).getEncoded();
     }
 
-    public static PrivateKey privKeyFromBytes(byte[] bytes) throws InvalidKeySpecException {
-        X509EncodedKeySpec privKeySpec = new X509EncodedKeySpec(bytes);
+    public static PrivateKey privateKeyFromBytes(byte[] bytes) throws InvalidKeySpecException {
+        KeySpec privKeySpec = new PKCS8EncodedKeySpec(bytes);
         return keyFactory.generatePrivate(privKeySpec);
     }
 }

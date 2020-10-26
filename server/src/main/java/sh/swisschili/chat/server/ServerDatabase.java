@@ -29,6 +29,7 @@ public class ServerDatabase {
     private final MongoCollection<Document> groups;
     private final MongoCollection<Document> registered;
     private final MongoCollection<Document> userStatuses;
+    private final MongoCollection<Document> messages;
 
     private final PasswordAuthentication auth = new PasswordAuthentication();
 
@@ -51,6 +52,7 @@ public class ServerDatabase {
         groups = db.getCollection("groups");
         registered = db.getCollection("registeredUsers");
         userStatuses = db.getCollection("userStatuses");
+        messages = db.getCollection("messages");
     }
 
     /**
@@ -232,5 +234,26 @@ public class ServerDatabase {
 
                     return status.build();
                 });
+    }
+
+    /**
+     * Save a message to the database and return its id.
+     * @param channel The channel the message was sent in
+     * @param message The message
+     * @return The message's id
+     */
+    public ObjectId saveMessage(Channel channel, Message message) {
+        ObjectId id = new ObjectId();
+        User user = message.getSender();
+        Document messageDoc = new Document("body", message.getBody())
+                .append("unixTime", message.getUnixTime())
+                .append("_id", id)
+                .append("senderName", user.getName())
+                .append("senderHost", user.getHost())
+                .append("senderId", new ObjectId(user.getId()))
+                .append("channelId", new ObjectId(channel.getId()));
+        messages.insertOne(messageDoc);
+
+        return id;
     }
 }

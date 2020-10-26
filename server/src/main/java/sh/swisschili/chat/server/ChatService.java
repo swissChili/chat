@@ -159,8 +159,12 @@ public class ChatService extends ChatGrpc.ChatImplBase {
                 String exchangeName = ServerConstants.getChannelExchange(request.getChannel().getId());
                 Channel channel = getChannel(exchangeName);
 
-                LOGGER.info("Sending message: " + request.getMessage().getBody());
-                channel.basicPublish(exchangeName, "", null, request.getMessage().toByteArray());
+                ChatProtos.Message message = ChatProtos.Message.newBuilder(request.getMessage())
+                        .setId(db.saveMessage(request.getChannel(), request.getMessage()).toString())
+                        .build();
+
+                LOGGER.info("Sending message: " + message.getBody());
+                channel.basicPublish(exchangeName, "", null, message.toByteArray());
             } catch (IOException e) {
                 LOGGER.error("Could not create RabbitMQ channel in sendMessage");
                 responseObserver.onError(e);

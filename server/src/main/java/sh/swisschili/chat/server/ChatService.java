@@ -289,6 +289,14 @@ public class ChatService extends ChatGrpc.ChatImplBase {
         }
     }
 
+    @Override
+    public void getMessageRange(ChatProtos.MessageRangeRequest request, StreamObserver<ChatProtos.MessageRangeResponse> responseObserver) {
+        List<ChatProtos.Message> messages = db.getMessageRange(request.getChannel(), request.getFrom(), request.getCount());
+        responseObserver.onNext(ChatProtos.MessageRangeResponse.newBuilder()
+                .addAllMessages(messages).build());
+        responseObserver.onCompleted();
+    }
+
     public void setAllowUnsignedMessages(boolean allowUnsignedMessages) {
         this.allowUnsignedMessages = allowUnsignedMessages;
     }

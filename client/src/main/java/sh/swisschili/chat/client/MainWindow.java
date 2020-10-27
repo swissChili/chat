@@ -53,6 +53,8 @@ public class MainWindow {
 
     private void createUIComponents() {
         userPanel = userComponent.getRootPanel();
+        messages = new JList<>();
+        messagesScrollPane = new InfiniteScrollPane<>(messages);
     }
 
     private static class GroupsPopUp extends JPopupMenu {
@@ -138,7 +140,8 @@ public class MainWindow {
 
             LOGGER.info("Channel selected " + channel);
 
-            messages.setModel(channel.getMessageModel());
+            InfiniteScrollPane<Message> infiniteScrollPane = (InfiniteScrollPane<Message>) messagesScrollPane;
+            infiniteScrollPane.setBufferedLoader(channel.getBufferedLoader());
             currentChannel = channel;
         });
 
@@ -310,10 +313,8 @@ public class MainWindow {
         sendButton = new JButton();
         sendButton.setText("Send");
         panel3.add(sendButton, cc.xy(3, 1));
-        messagesScrollPane = new JScrollPane();
         messagesScrollPane.setHorizontalScrollBarPolicy(31);
         panel2.add(messagesScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-        messages = new JList();
         messagesScrollPane.setViewportView(messages);
         final JPanel panel4 = new JPanel();
         panel4.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));

@@ -13,6 +13,9 @@ import sh.swisschili.chat.util.SignedAuth;
 import java.security.KeyException;
 import java.security.KeyPair;
 import java.security.SignatureException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class ServerChannel {
     private final ServerPool pool;
@@ -20,6 +23,7 @@ public class ServerChannel {
     private final DefaultListModel<Message> messageModel = new DefaultListModel<>();
     private final ChatGrpc.ChatStub stub;
     private final User user;
+    private final LinkedList<ItemAddedListener> itemAddedListeners = new LinkedList<>();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerPool.class.getName());
 
@@ -36,7 +40,11 @@ public class ServerChannel {
         stub.getMessages(channel, new StreamObserver<Message>() {
             @Override
             public void onNext(Message value) {
-                messageModel.addElement(value);
+                SwingUtilities.invokeLater(() -> {
+                    itemAddedListeners.forEach(ItemAddedListener::beforeItemAdded);
+                    messageModel.addElement(value);
+                    itemAddedListeners.forEach(ItemAddedListener::afterItemAdded);
+                });
             }
 
             @Override
@@ -75,6 +83,60 @@ public class ServerChannel {
                     });
         } catch (KeyException | SignatureException ignored) {
         }
+    }
+
+    public InfiniteScrollPane.BufferedLoader<Message> getBufferedLoader() {
+        return new InfiniteScrollPane.BufferedLoader<>() {
+            @Override
+            public CompletableFuture<Void> loadMore(int number) {
+                LOGGER.info(String.format("Starting to fetch from %d length %d", messageModel.getSize(), number));
+
+                CompletableFuture<Void> future = new CompletableFuture<>();
+                stub.getMessageRange(MessageRangeRequest.newBuilder()
+                                .setFrom(messageModel.getSize())
+                                .setCount(number)
+                                .setChannel(channel).build(),
+                        new StreamObserver<>() {
+                            @Override
+                            public void onNext(MessageRangeResponse value) {
+//                                for (int i = value.getMessagesCount() - 1; i >= 0; i--) {
+                                SwingUtilities.invokeLater(() -> {
+                                    for (int i = 0; i < value.getMessagesCount(); i++) {
+                                        messageModel.add(0, value.getMessagesList().get(i));
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onError(Throwable t) {
+                                future.completeExceptionally(t);
+                            }
+
+                            @Override
+                            public void onCompleted() {
+                                LOGGER.info("getRange COMPLETED");
+                                future.complete(null);
+                            }
+
+                        });
+                return future;
+            }
+
+            @Override
+            public ListModel<Message> getListModel() {
+                return messageModel;
+            }
+
+            @Override
+            public void addItemAddedListener(ItemAddedListener listener) {
+                itemAddedListeners.add(listener);
+            }
+
+            @Override
+            public void removeItemAddedListener(ItemAddedListener listener) {
+                itemAddedListeners.remove(listener);
+            }
+        };
     }
 
     @Override

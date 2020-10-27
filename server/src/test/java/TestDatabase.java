@@ -35,4 +35,13 @@ public class TestDatabase {
         assert channels.size() == 1;
         assert channels.get(0).getName().equals("general");
     }
+
+    @Test
+    public void messageRangeTest() throws ClassNotFoundException {
+        LOGGER.info("Getting last 10 messages");
+        Channel channel = db.getGroupChannels(db.getGroupByName("test-group")).get(0);
+        LOGGER.info("Channel is " + channel);
+        db.getMessageRange(channel, 0, 10)
+                .forEach(System.out::println);
+    }
 }

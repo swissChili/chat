@@ -14,6 +14,8 @@ import org.bson.BsonBinary;
 import org.bson.Document;
 import org.bson.types.Binary;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.ChatProtos;
 import sh.swisschili.chat.util.ChatProtos.*;
 
@@ -21,6 +23,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -32,6 +37,7 @@ public class ServerDatabase {
     private final MongoCollection<Document> messages;
 
     private final PasswordAuthentication auth = new PasswordAuthentication();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerDatabase.class);
 
     public static class UserNotFoundException extends Exception {
     }
@@ -238,6 +244,7 @@ public class ServerDatabase {
 
     /**
      * Save a message to the database and return its id.
+     *
      * @param channel The channel the message was sent in
      * @param message The message
      * @return The message's id
@@ -255,5 +262,30 @@ public class ServerDatabase {
         messages.insertOne(messageDoc);
 
         return id;
+    }
+
+    public List<Message> getMessageRange(Channel channel, int start, int number) {
+        LOGGER.info(String.format("Getting from %d # %d", start, number));
+        return StreamSupport.stream(
+                messages.find(new Document("channelId", new ObjectId(channel.getId())))
+                        .sort(new Document("unixTime", -1))
+                        .skip(start)
+                        .limit(number)
+                        .spliterator(), false)
+                .map(doc -> {
+                    User sender = User.newBuilder()
+                            .setName(doc.getString("senderName"))
+                            .setHost(doc.getString("senderHost"))
+                            .setId(doc.getObjectId("senderId").toString())
+                            .build();
+
+                    return Message.newBuilder()
+                            .setId(doc.getObjectId("_id").toString())
+                            .setBody(doc.getString("body"))
+                            .setUnixTime(doc.getLong("unixTime"))
+                            .setSender(sender)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }

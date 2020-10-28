@@ -1,5 +1,6 @@
 package sh.swisschili.chat.client;
 
+import com.github.weisj.darklaf.theme.info.FontSizeRule;
 import org.intellij.lang.annotations.JdkConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +68,10 @@ public class InfiniteScrollPane<T> extends JScrollPane {
     }
 
     private void onScroll(AdjustmentEvent e) {
-        if (!e.getValueIsAdjusting())
-            return;
+//        if (e.getValueIsAdjusting())
+//            return;
+
+        LOGGER.info("Adjustment type is " + e.getAdjustmentType());
 
         int max = e.getAdjustable().getMaximum();
         int min = e.getAdjustable().getMinimum();
@@ -76,13 +79,12 @@ public class InfiniteScrollPane<T> extends JScrollPane {
         int current = e.getValue();
         int maxPossible = max - visible;
 
-        LOGGER.info(String.format("Scrolled to %d in range %d-%d (%d)", current, min, max, visible));
+        //LOGGER.info(String.format("Scrolled to %d in range %d-%d (%d)", current, min, max, visible));
 
         if (fetchingMore.get()) {
             LOGGER.info("Already fetching more");
             return;
         }
-
         if (current == min) {
             getMore();
         }
@@ -95,10 +97,27 @@ public class InfiniteScrollPane<T> extends JScrollPane {
         fetchingMore.set(true);
         LOGGER.info("Getting more...");
 
-        int lengthBefore = list.getModel().getSize();
+        // TODO: use list preferredSize instead of number of items in model
+        int sizeBefore = list.getModel().getSize();
 
         bufferedLoader.loadMore(numberToShowAtOnce).thenAccept(ignored -> {
             fetchingMore.set(false);
+
+            int sizeAfter = list.getModel().getSize();
+            double ratio = (double)sizeBefore / (double)sizeAfter;
+
+            if (sizeBefore == sizeAfter)
+                return;
+
+            int max = getVerticalScrollBar().getMaximum();
+            int min = getVerticalScrollBar().getMinimum();
+            int visible = getVerticalScrollBar().getVisibleAmount();
+            int current = getVerticalScrollBar().getValue();
+            int maxPossible = max - visible;
+            int newPosition = maxPossible - (int)((maxPossible - min) * ratio);
+
+            LOGGER.info(String.format("old/new ratio is %f, from %d to %d", ratio, sizeBefore, sizeAfter));
+            getVerticalScrollBar().setValue(max);
         }).exceptionally(t -> {
             fetchingMore.set(false);
             return null;

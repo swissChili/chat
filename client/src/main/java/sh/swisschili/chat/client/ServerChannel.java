@@ -117,7 +117,6 @@ public class ServerChannel {
                         new StreamObserver<>() {
                             @Override
                             public void onNext(MessageRangeResponse value) {
-//                                for (int i = value.getMessagesCount() - 1; i >= 0; i--) {
                                 SwingUtilities.invokeLater(() -> {
                                     for (int i = 0; i < value.getMessagesCount(); i++) {
                                         messageModel.add(0, value.getMessagesList().get(i));
@@ -135,7 +134,6 @@ public class ServerChannel {
                                 LOGGER.info("getRange COMPLETED");
                                 future.complete(null);
                             }
-
                         });
                 return future;
             }

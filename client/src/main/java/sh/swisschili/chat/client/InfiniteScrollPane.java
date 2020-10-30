@@ -18,14 +18,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package sh.swisschili.chat.client;
 
-import com.github.weisj.darklaf.theme.info.FontSizeRule;
-import org.intellij.lang.annotations.JdkConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import java.awt.*;
 import java.awt.event.AdjustmentEvent;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -61,7 +60,7 @@ public class InfiniteScrollPane<T> extends JScrollPane {
 
             if (isAtBottom) {
                 LOGGER.info("At bottom of " + maxPossible);
-                getVerticalScrollBar().setValue(maxPossible);
+                getVerticalScrollBar().setValue(max);
             }
         }
     };
@@ -81,33 +80,10 @@ public class InfiniteScrollPane<T> extends JScrollPane {
     public InfiniteScrollPane(JList<T> list) {
         super(list);
         this.list = list;
-        getVerticalScrollBar().addAdjustmentListener(this::onScroll);
+        getViewport().addChangeListener(this::viewportStateChanged);
     }
 
-    private void onScroll(AdjustmentEvent e) {
-//        if (e.getValueIsAdjusting())
-//            return;
-
-        LOGGER.info("Adjustment type is " + e.getAdjustmentType());
-
-        int max = e.getAdjustable().getMaximum();
-        int min = e.getAdjustable().getMinimum();
-        int visible = e.getAdjustable().getVisibleAmount();
-        int current = e.getValue();
-        int maxPossible = max - visible;
-
-        //LOGGER.info(String.format("Scrolled to %d in range %d-%d (%d)", current, min, max, visible));
-
-        if (fetchingMore.get()) {
-            LOGGER.info("Already fetching more");
-            return;
-        }
-        if (current == min) {
-            getMore();
-        }
-    }
-
-    private void getMore() {
+    private void getMore(boolean scrollToBottomAfter) {
         if (bufferedLoader == null)
             return;
 
@@ -126,15 +102,11 @@ public class InfiniteScrollPane<T> extends JScrollPane {
             if (sizeBefore == sizeAfter)
                 return;
 
-            int max = getVerticalScrollBar().getMaximum();
-            int min = getVerticalScrollBar().getMinimum();
-            int visible = getVerticalScrollBar().getVisibleAmount();
-            int current = getVerticalScrollBar().getValue();
-            int maxPossible = max - visible;
-            int newPosition = maxPossible - (int)((maxPossible - min) * ratio);
+            LOGGER.info("Added more...");
 
-            LOGGER.info(String.format("old/new ratio is %f, from %d to %d", ratio, sizeBefore, sizeAfter));
-            getVerticalScrollBar().setValue(max);
+            LOGGER.info(String.format("old/new ratio is %f", ratio));
+            //if (scrollToBottomAfter)
+            getVerticalScrollBar().setValue(getVerticalScrollBar().getMaximum());
         }).exceptionally(t -> {
             fetchingMore.set(false);
             return null;
@@ -158,9 +130,17 @@ public class InfiniteScrollPane<T> extends JScrollPane {
         this.bufferedLoader.addItemAddedListener(listener);
 
         list.setModel(bufferedLoader.getListModel());
-        if (bufferedLoader.getListModel().getSize() == 0)
-            getMore();
 
         getVerticalScrollBar().setValue(getVerticalScrollBar().getMaximum());
+
+        if (bufferedLoader.getListModel().getSize() == 0)
+            getMore(true);
+    }
+
+    public void viewportStateChanged(ChangeEvent e) {
+        Point viewPos = getViewport().getViewPosition();
+        if (viewPos.getY() == 0) {
+            getMore(false);
+        }
     }
 }

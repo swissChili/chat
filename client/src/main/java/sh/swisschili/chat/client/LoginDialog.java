@@ -66,7 +66,7 @@ public class LoginDialog extends JDialog {
         welcome.setText(message);
 
         add(rootPanel);
-        setMinimumSize(new Dimension(320, 240));
+        setMinimumSize(new Dimension(400, 240));
         getRootPane().setDefaultButton(logInButton);
 
         logInButton.addActionListener(e -> doLogin(Method.LOG_IN));

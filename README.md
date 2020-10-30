@@ -44,6 +44,27 @@ Each chat server has many groups. Each group can have many channels (like
 slack channels) and many users. Users can participate in many groups, in many
 chat servers at the same time, under the same identity.
 
+# CI binaries
+
+Binaries (jars) are available for each commit via. sourcehut builds
+[here](https://builds.sr.ht/~swisschili?search=chat). You need Java 8 or later,
+but I recommend using OpenJDK instead of the Oracle JVM. You can install it
+on Debian based systems with `apt install openjdk-11-jre`.
+
+# Public development group
+
+![Joining public development group](join.png)
+
+Anyone can create an account on the `chat.swisschili.sh` server.
+Right click the left panel and join the `dev`
+group on `chat.swisschili.sh` once you have made an account to discuss the
+software. The server will go down from time to time, and since the API is not
+yet stable make sure you are always using the most recent client from the CI.
+
+Note that data may be wiped off the server at any time (although I'll try not to),
+so if your messages are failing to send with a signature error (check stderr)
+try logging out and registering for a new account.
+
 # Building from source
 
 ```sh

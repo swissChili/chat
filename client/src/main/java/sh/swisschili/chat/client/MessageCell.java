@@ -22,6 +22,8 @@ import com.github.weisj.darklaf.components.border.DarkBorders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.ChatProtos.Message;
 
 import javax.swing.*;
@@ -37,12 +39,17 @@ public class MessageCell implements ListCellRenderer<Message> {
     public MessageCell() {
     }
 
-    public MessageCell(@NotNull Message value) {
+    public MessageCell(@NotNull Message value, int parentWidth) {
         $$$setupUI$$$();
+
+        int width = parentWidth / 6;
+        int lines = value.getBody().length() / width + 1;
 
         body.setText(value.getBody());
         body.setLineWrap(true);
         body.setWrapStyleWord(true);
+
+        body.setRows(lines);
 
         sender.setText(value.getSender().getName());
         time.setText(new Date(value.getUnixTime()).toString());
@@ -55,7 +62,7 @@ public class MessageCell implements ListCellRenderer<Message> {
     @Override
     public JComponent getListCellRendererComponent(JList<? extends Message> list, Message value, int index,
                                                    boolean isSelected, boolean cellHasFocus) {
-        return new MessageCell(value).rootPanel;
+        return new MessageCell(value, list.getWidth()).rootPanel;
     }
 
     /**

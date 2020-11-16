@@ -65,7 +65,7 @@ public class AddGroupDialog extends JDialog {
             private final Pattern pattern = Pattern.compile("^[0-9a-zA-Z\\.\\-]+$");
 
             private boolean isValid(String input) {
-                if (input.isBlank())
+                if (input.trim().isEmpty())
                     return false;
 
                 Matcher matcher = pattern.matcher(input);

@@ -104,7 +104,7 @@ public class ServerChannel {
     }
 
     public InfiniteScrollPane.BufferedLoader<Message> getBufferedLoader() {
-        return new InfiniteScrollPane.BufferedLoader<>() {
+        return new InfiniteScrollPane.BufferedLoader<Message>() {
             @Override
             public CompletableFuture<Void> loadMore(int number) {
                 LOGGER.info(String.format("Starting to fetch from %d length %d", messageModel.getSize(), number));
@@ -114,7 +114,7 @@ public class ServerChannel {
                                 .setFrom(messageModel.getSize())
                                 .setCount(number)
                                 .setChannel(channel).build(),
-                        new StreamObserver<>() {
+                        new StreamObserver<MessageRangeResponse>() {
                             @Override
                             public void onNext(MessageRangeResponse value) {
                                 SwingUtilities.invokeLater(() -> {

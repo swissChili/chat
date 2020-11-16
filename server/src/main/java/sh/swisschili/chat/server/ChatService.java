@@ -77,7 +77,7 @@ public class ChatService extends ChatGrpc.ChatImplBase {
             lock.unlock();
             LOGGER.info("Public key not cached, querying server for details");
 
-            StreamObserver<ChatProtos.UserPublicKey> listener = new StreamObserver<>() {
+            StreamObserver<ChatProtos.UserPublicKey> listener = new StreamObserver<ChatProtos.UserPublicKey>() {
                 @Override
                 public void onNext(ChatProtos.UserPublicKey value) {
                     try {

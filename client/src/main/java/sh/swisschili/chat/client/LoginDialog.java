@@ -84,7 +84,7 @@ public class LoginDialog extends JDialog {
                     .setPassword(String.valueOf(password.getPassword()))
                     .build();
 
-            stub.signIn(request, new StreamObserver<>() {
+            stub.signIn(request, new StreamObserver<ChatProtos.SignInResponse>() {
                 private ChatProtos.User user;
                 @Override
                 public void onNext(ChatProtos.SignInResponse value) {
@@ -111,7 +111,7 @@ public class LoginDialog extends JDialog {
                     .setPrivateKey(ByteString.copyFrom(SignedAuth.privateKeyToBytes(keys.getPrivate())))
                     .build();
 
-            stub.register(request, new StreamObserver<>() {
+            stub.register(request, new StreamObserver<ChatProtos.RegisterResponse>() {
                 private boolean completed = false;
 
                 @Override

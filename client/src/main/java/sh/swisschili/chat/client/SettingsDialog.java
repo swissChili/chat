@@ -81,8 +81,9 @@ public class SettingsDialog extends JDialog {
         logInRegisterButton.setIcon(ColoredIcon.buildIcon(FontAwesome.USER_CIRCLE, 14));
 
         DefaultComboBoxModel<Theme> themeModel = new DefaultComboBoxModel<>();
-        themeModel.addAll(Arrays.asList(new DarculaTheme(), new IntelliJTheme(), new SolarizedLightTheme(),
-                new SolarizedDarkTheme(), new OneDarkTheme(), new HighContrastLightTheme(), new HighContrastDarkTheme()));
+        Arrays.asList(new DarculaTheme(), new IntelliJTheme(), new SolarizedLightTheme(),
+                new SolarizedDarkTheme(), new OneDarkTheme(), new HighContrastLightTheme(), new HighContrastDarkTheme())
+            .forEach(themeModel::addElement);
 
         themeComboBox.setModel(themeModel);
 

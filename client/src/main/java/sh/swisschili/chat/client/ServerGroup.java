@@ -64,7 +64,7 @@ public class ServerGroup {
 
         ServerGroup serverGroup = this;
 
-        StreamObserver<AddUserResponse> addUserObserver = new StreamObserver<>() {
+        StreamObserver<AddUserResponse> addUserObserver = new StreamObserver<AddUserResponse>() {
             @Override
             public void onNext(AddUserResponse value) {
                 authorizedUser = value.getUser();
@@ -91,7 +91,7 @@ public class ServerGroup {
                     @Override
                     public void onCompleted() {
                         pool.chatStubFor(server)
-                                .getGroupChannels(group, new StreamObserver<>() {
+                                .getGroupChannels(group, new StreamObserver<GroupChannelsResponse>() {
                                     @Override
                                     public void onNext(GroupChannelsResponse value) {
                                         channels = value.getChannelsList().stream()
@@ -99,7 +99,7 @@ public class ServerGroup {
                                                 .collect(Collectors.toList());
 
                                         model.clear();
-                                        model.addAll(channels);
+                                        channels.forEach(model::addElement);
                                     }
 
                                     @Override
@@ -115,7 +115,7 @@ public class ServerGroup {
 
                         pool.chatStubFor(server)
                                 .getGroupUserStatuses(GroupUserStatusRequest.newBuilder().setGroup(group).build(),
-                                        new StreamObserver<>() {
+                                        new StreamObserver<UserStatus>() {
                                             @Override
                                             public void onNext(UserStatus value) {
                                                 LOGGER.info("Got user status " + value.toString());
@@ -159,7 +159,7 @@ public class ServerGroup {
                                 .setGroup(group)
                                 .setStatus(status)
                                 .build(),
-                        new StreamObserver<>() {
+                        new StreamObserver<SetUserStatusResponse>() {
                             @Override
                             public void onNext(SetUserStatusResponse value) {
                             }

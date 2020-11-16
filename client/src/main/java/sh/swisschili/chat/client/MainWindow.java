@@ -95,7 +95,7 @@ public class MainWindow {
         users.setCellRenderer(new UserStatusComponent.Renderer());
 
         DefaultComboBoxModel<String> statusModel = new DefaultComboBoxModel<>();
-        statusModel.addAll(Arrays.asList("Online", "Away", "Do not disturb"));
+        Arrays.asList("Online", "Away", "Do not disturb").forEach(statusModel::addElement);
         statusBox.setModel(statusModel);
 
         statusBox.addActionListener(e -> {
@@ -209,7 +209,7 @@ public class MainWindow {
     }
 
     protected void sendMessage() {
-        if (messageField.getText().isBlank() || currentChannel == null)
+        if (messageField.getText().trim().isEmpty() || currentChannel == null)
             return;
 
         LOGGER.info("Message sent " + messageField.getText());

@@ -1,6 +1,6 @@
 image: debian/stable
 packages:
-  - openjdk-8-jdk
+  - openjdk-11-jdk
 sources:
   - https://github.com/swissChili/chat
 tasks:

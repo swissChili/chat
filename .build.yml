@@ -1,10 +1,18 @@
 image: debian/stable
 packages:
-  - openjdk-11-jdk
+  - wget
+  - tar
 sources:
   - https://github.com/swissChili/chat
 tasks:
+  - jdk: |
+      wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u275-b01/OpenJDK8U-jdk_x64_linux_hotspot_8u275b01.tar.gz
+      tar xzf OpenJDK8U-jdk_x64_linux_hotspot_8u275b01.tar.gz
+      export PATH=$PWD/jdk8u275-b01/bin:$PATH
+      java -version
   - jar: |
+      export PATH=$PWD/jdk8u275-b01/bin:$PATH
+      java -version
       cd chat
       ./gradlew shadowJar
       cp client/build/libs/*.jar client.jar

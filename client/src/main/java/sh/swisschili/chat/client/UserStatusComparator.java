@@ -1,6 +1,6 @@
 /*
 Decentralized chat software
-Copyright (C) 2020  swissChili
+Copyright (C) 2021  swissChili
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package sh.swisschili.chat.client;
 
-import sh.swisschili.chat.util.ChatProtos.*;
+import sh.swisschili.chat.util.ChatProtos.UserStatus;
 
 import java.util.Comparator;
 

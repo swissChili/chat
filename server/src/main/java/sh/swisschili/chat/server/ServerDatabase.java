@@ -1,6 +1,6 @@
 /*
 Decentralized chat software
-Copyright (C) 2020  swissChili
+Copyright (C) 2021  swissChili
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,6 @@ import org.bson.types.Binary;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.swisschili.chat.util.ChatProtos;
 import sh.swisschili.chat.util.ChatProtos.*;
 
 import java.util.ArrayList;
@@ -42,7 +41,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.mongodb.client.model.Filters.eq;

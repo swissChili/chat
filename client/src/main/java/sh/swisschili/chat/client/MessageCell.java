@@ -1,6 +1,6 @@
 /*
 Decentralized chat software
-Copyright (C) 2020  swissChili
+Copyright (C) 2021  swissChili
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -22,8 +22,6 @@ import com.github.weisj.darklaf.components.border.DarkBorders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.ChatProtos.Message;
 
 import javax.swing.*;
@@ -35,7 +33,7 @@ import java.util.Locale;
 
 public class MessageCell implements ListCellRenderer<Message> {
     private JPanel rootPanel;
-    private JTextArea body;
+    private JLabel body;
     private JLabel sender;
     private JLabel time;
 
@@ -45,14 +43,10 @@ public class MessageCell implements ListCellRenderer<Message> {
     public MessageCell(@NotNull Message value, int parentWidth) {
         $$$setupUI$$$();
 
-        int width = parentWidth / 6;
-        int lines = value.getBody().length() / width + 1;
+//        int width = parentWidth / 6;
+//        int lines = value.getBody().length() / width + 1;
 
-        body.setText(value.getBody());
-        body.setLineWrap(true);
-        body.setWrapStyleWord(true);
-
-        body.setRows(lines);
+        body.setText("<html><body style='width:100%'>" + value.getBody());
 
         sender.setText(value.getSender().getName());
         time.setText(new Date(value.getUnixTime()).toString());
@@ -91,9 +85,8 @@ public class MessageCell implements ListCellRenderer<Message> {
         if (timeFont != null) time.setFont(timeFont);
         time.setText("Time");
         panel1.add(time, cc.xy(3, 1));
-        body = new JTextArea();
-        body.setEditable(true);
-        body.setLineWrap(true);
+        body = new JLabel();
+        body.setText("Label");
         rootPanel.add(body, BorderLayout.CENTER);
     }
 

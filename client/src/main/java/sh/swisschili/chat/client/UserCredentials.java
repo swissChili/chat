@@ -1,6 +1,6 @@
 /*
 Decentralized chat software
-Copyright (C) 2020  swissChili
+Copyright (C) 2021  swissChili
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -47,14 +47,14 @@ public class UserCredentials extends SignedAuth {
         }
     }
 
-    public static boolean userLoggedIn() {
+    public static boolean notLoggedIn() {
         for (String key : PREF_KEYS) {
             if (preferences.get(key, "").isEmpty()) {
                 LOGGER.warn("User preference undefined: " + key);
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     public static void clearUser() {
@@ -69,7 +69,7 @@ public class UserCredentials extends SignedAuth {
     }
 
     public static ChatProtos.User getUser() throws CredentialsNotFound {
-        if (!userLoggedIn())
+        if (notLoggedIn())
             throw new CredentialsNotFound("User not logged in");
 
         return ChatProtos.User.newBuilder()
@@ -83,7 +83,7 @@ public class UserCredentials extends SignedAuth {
     }
 
     public static char[] getPassword() throws CredentialsNotFound {
-        if (!userLoggedIn())
+        if (notLoggedIn())
             throw new CredentialsNotFound("User not logged in");
 
         return preferences.get("user.password", "").toCharArray();
@@ -108,6 +108,7 @@ public class UserCredentials extends SignedAuth {
 
     public static KeyPair createUserKeys() {
         KeyPair keys = generateKeyPair();
+        assert keys != null;
         preferences.putByteArray("user.credentials.privateKey", privateKeyToBytes(keys.getPrivate()));
         preferences.putByteArray("user.credentials.publicKey", pubKeyToBytes(keys.getPublic()));
 

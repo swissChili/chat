@@ -2,7 +2,7 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="sh.swisschili.chat.client.MessageCell">
   <grid id="27dc6" binding="rootPanel" layout-manager="BorderLayout" hgap="0" vgap="5">
     <constraints>
-      <xy x="20" y="20" width="500" height="114"/>
+      <xy x="20" y="20" width="298" height="101"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -43,11 +43,10 @@
           </component>
         </children>
       </grid>
-      <component id="19734" class="javax.swing.JTextArea" binding="body">
+      <component id="d0ad1" class="javax.swing.JLabel" binding="body">
         <constraints border-constraint="Center"/>
         <properties>
-          <editable value="true"/>
-          <lineWrap value="true"/>
+          <text value="Label"/>
         </properties>
       </component>
     </children>

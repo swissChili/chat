@@ -1,6 +1,6 @@
 /*
 Decentralized chat software
-Copyright (C) 2020  swissChili
+Copyright (C) 2021  swissChili
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -22,11 +22,12 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.Constants;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-import org.slf4j.*;
 
 public class ChatServer {
     private final int port;

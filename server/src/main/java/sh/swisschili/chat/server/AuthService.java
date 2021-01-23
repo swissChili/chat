@@ -1,6 +1,6 @@
 /*
 Decentralized chat software
-Copyright (C) 2020  swissChili
+Copyright (C) 2021  swissChili
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -23,11 +23,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.AuthGrpc;
-import sh.swisschili.chat.util.ChatGrpc;
 import sh.swisschili.chat.util.ChatProtos;
-import sh.swisschili.chat.util.SignedAuth;
-
-import java.security.spec.InvalidKeySpecException;
 
 public class AuthService extends AuthGrpc.AuthImplBase {
     private final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);

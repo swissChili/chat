@@ -1,6 +1,6 @@
 /*
 Decentralized chat software
-Copyright (C) 2020  swissChili
+Copyright (C) 2021  swissChili
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -20,13 +20,12 @@ package sh.swisschili.chat.server;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.DeliverCallback;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.*;
-import sh.swisschili.chat.util.ChatGrpc;
-import sh.swisschili.chat.util.ChatProtos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.*;
 
 import java.io.IOException;

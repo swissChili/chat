@@ -1,6 +1,6 @@
 /*
 Decentralized chat software
-Copyright (C) 2020  swissChili
+Copyright (C) 2021  swissChili
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -20,19 +20,18 @@ package sh.swisschili.chat.client;
 
 import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.ChatGrpc;
 import sh.swisschili.chat.util.ChatProtos.*;
-
-import javax.swing.*;
-import org.slf4j.*;
 import sh.swisschili.chat.util.ServerPool;
 import sh.swisschili.chat.util.SignedAuth;
 
+import javax.swing.*;
 import java.security.KeyException;
 import java.security.KeyPair;
 import java.security.SignatureException;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ServerChannel {
@@ -107,7 +106,7 @@ public class ServerChannel {
         return new InfiniteScrollPane.BufferedLoader<Message>() {
             @Override
             public CompletableFuture<Void> loadMore(int number) {
-                LOGGER.info(String.format("Starting to fetch from %d length %d", messageModel.getSize(), number));
+//                LOGGER.info(String.format("Starting to fetch from %d length %d", messageModel.getSize(), number));
 
                 CompletableFuture<Void> future = new CompletableFuture<>();
                 stub.getMessageRange(MessageRangeRequest.newBuilder()
@@ -131,7 +130,6 @@ public class ServerChannel {
 
                             @Override
                             public void onCompleted() {
-                                LOGGER.info("getRange COMPLETED");
                                 future.complete(null);
                             }
                         });

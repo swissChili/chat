@@ -1,6 +1,6 @@
 /*
 Decentralized chat software
-Copyright (C) 2020  swissChili
+Copyright (C) 2021  swissChili
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -20,9 +20,7 @@ package sh.swisschili.chat.util;
 
 import io.grpc.Channel;
 import io.grpc.ManagedChannelBuilder;
-import sh.swisschili.chat.util.AuthGrpc;
 import sh.swisschili.chat.util.AuthGrpc.AuthStub;
-import sh.swisschili.chat.util.ChatGrpc;
 import sh.swisschili.chat.util.ChatGrpc.ChatStub;
 
 import java.util.HashMap;
@@ -35,7 +33,7 @@ public class ServerPool {
 
     private Channel channelFor(String server) {
         if (!channels.containsKey(server)) {
-            Channel channel = ManagedChannelBuilder.forAddress(server, Constants.DEFAULT_SERVER_PORT)
+            Channel channel = ManagedChannelBuilder.forAddress(server.trim(), Constants.DEFAULT_SERVER_PORT)
                     .usePlaintext()
                     .build();
             channels.put(server, channel);

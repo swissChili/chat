@@ -1,6 +1,6 @@
 /*
 Decentralized chat software
-Copyright (C) 2020  swissChili
+Copyright (C) 2021  swissChili
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -18,26 +18,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package sh.swisschili.chat.client;
 
-import com.github.weisj.darklaf.DarkLaf;
-import com.github.weisj.darklaf.LafManager;
 import com.github.weisj.darklaf.components.border.DarkBorders;
 import com.github.weisj.darklaf.settings.ThemeSettings;
 import com.github.weisj.darklaf.theme.*;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import jiconfont.icons.font_awesome.FontAwesome;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.ListDataListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Arrays;
-
-import jiconfont.icons.font_awesome.FontAwesome;
-import jiconfont.swing.IconFontSwing;
-import org.slf4j.*;
 import java.util.prefs.Preferences;
 
 public class SettingsDialog extends JDialog {

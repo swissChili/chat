@@ -1,6 +1,6 @@
 /*
 Decentralized chat software
-Copyright (C) 2020  swissChili
+Copyright (C) 2021  swissChili
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import java.awt.*;
-import java.awt.event.AdjustmentEvent;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -58,10 +57,7 @@ public class InfiniteScrollPane<T> extends JScrollPane {
             int visible = getVerticalScrollBar().getVisibleAmount();
             int maxPossible = max - visible;
 
-            if (isAtBottom) {
-                LOGGER.info("At bottom of " + maxPossible);
-                getVerticalScrollBar().setValue(max);
-            }
+            getVerticalScrollBar().setValue(max);
         }
     };
 

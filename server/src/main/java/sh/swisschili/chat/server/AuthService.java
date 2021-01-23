@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.AuthGrpc;
 import sh.swisschili.chat.util.ChatProtos;
+import sh.swisschili.chat.util.Errors;
 
 public class AuthService extends AuthGrpc.AuthImplBase {
     private final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
@@ -50,7 +51,7 @@ public class AuthService extends AuthGrpc.AuthImplBase {
             } else {
                 LOGGER.info("User failed to log in (invalid credentials)");
             }
-        } catch (ServerDatabase.UserNotFoundException e) {
+        } catch (Errors.UserNotFoundException e) {
             responseObserver.onError(e);
         }
     }
@@ -58,8 +59,7 @@ public class AuthService extends AuthGrpc.AuthImplBase {
     @Override
     public void register(ChatProtos.RegisterRequest request, StreamObserver<ChatProtos.RegisterResponse> responseObserver) {
         try {
-            database.createUser(request.getName(), request.getPassword(), request.getPublicKey().toByteArray(),
-                    request.getPrivateKey().toByteArray());
+            database.createUser(request.getName(), request.getPassword(), request.getPublicKey().toByteArray());
 
             LOGGER.info("Created user");
 
@@ -69,7 +69,7 @@ public class AuthService extends AuthGrpc.AuthImplBase {
                             .setHost(host).build())
                     .build());
             responseObserver.onCompleted();
-        } catch (ServerDatabase.UsernameRegisteredException e) {
+        } catch (Errors.UsernameRegisteredException e) {
             responseObserver.onError(e);
         }
     }
@@ -81,8 +81,9 @@ public class AuthService extends AuthGrpc.AuthImplBase {
             responseObserver.onNext(ChatProtos.UserPublicKey.newBuilder()
                     .setPublicKey(ByteString.copyFrom(bytes)).build());
             responseObserver.onCompleted();
-        } catch (ServerDatabase.UserNotFoundException e) {
+        } catch (Errors.UserNotFoundException e) {
             e.printStackTrace();
+            responseObserver.onError(e);
         }
     }
 }

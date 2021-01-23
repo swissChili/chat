@@ -35,6 +35,7 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.ChatProtos.*;
+import sh.swisschili.chat.util.Errors;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,12 +55,6 @@ public class ServerDatabase {
 
     private final PasswordAuthentication auth = new PasswordAuthentication();
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerDatabase.class);
-
-    public static class UserNotFoundException extends Exception {
-    }
-
-    public static class UsernameRegisteredException extends Exception {
-    }
 
     public ServerDatabase(String url) {
         ConnectionString connectionString = new ConnectionString(url);
@@ -180,38 +175,37 @@ public class ServerDatabase {
         return channels;
     }
 
-    public void createUser(String name, String password, byte[] publicKey, byte[] privateKey) throws UsernameRegisteredException {
+    public void createUser(String name, String password, byte[] publicKey) throws Errors.UsernameRegisteredException {
         registered.createIndex(new Document("name", 1), new IndexOptions().unique(true));
 
         try {
             registered.insertOne(new Document("name", name)
                     .append("password", auth.hash(password.toCharArray()))
-                    .append("publicKey", new BsonBinary(publicKey))
-                    .append("privateKey", new BsonBinary(privateKey)));
+                    .append("publicKey", new BsonBinary(publicKey)));
         } catch (Exception e) {
-            throw new UsernameRegisteredException();
+            throw new Errors.UsernameRegisteredException();
         }
     }
 
-    public boolean authenticateUser(String name, String password) throws UserNotFoundException {
+    public boolean authenticateUser(String name, String password) throws Errors.UserNotFoundException {
         Document user = registered.find(eq("name", name))
                 .projection(new Document("password", 1)
                         .append("_id", 0)).first();
 
         if (user == null)
-            throw new UserNotFoundException();
+            throw new Errors.UserNotFoundException();
 
         String pass = user.getString("password");
         return auth.authenticate(password.toCharArray(), pass);
     }
 
-    public byte[] getUserPublicKey(String name) throws UserNotFoundException {
+    public byte[] getUserPublicKey(String name) throws Errors.UserNotFoundException {
         Document user = registered.find(eq("name", name))
                 .projection(new Document("publicKey", 1)
                         .append("_id", 0)).first();
 
         if (user == null)
-            throw new UserNotFoundException();
+            throw new Errors.UserNotFoundException();
 
         return user.get("publicKey", Binary.class).getData();
     }

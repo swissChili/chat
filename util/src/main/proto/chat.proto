@@ -159,7 +159,6 @@ message RegisterRequest {
   string name = 1;
   string password = 2;
   bytes publicKey = 4;
-  bytes privateKey = 5;
 }
 
 message Redirect {

@@ -108,7 +108,6 @@ public class LoginDialog extends JDialog {
                     .setName(username.getText())
                     .setPassword(String.valueOf(password.getPassword()))
                     .setPublicKey(ByteString.copyFrom(SignedAuth.pubKeyToBytes(keys.getPublic())))
-                    .setPrivateKey(ByteString.copyFrom(SignedAuth.privateKeyToBytes(keys.getPrivate())))
                     .build();
 
             stub.register(request, new StreamObserver<ChatProtos.RegisterResponse>() {

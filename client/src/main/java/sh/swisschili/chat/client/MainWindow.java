@@ -74,7 +74,13 @@ public class MainWindow {
 
     private void createUIComponents() {
         userPanel = userComponent.getRootPanel();
-        messages = new JList<>();
+        messages = new JList<Message>() {
+            @Override
+            public boolean getScrollableTracksViewportWidth() {
+                return true;
+            }
+        };
+        messages.addComponentListener(new MessageListAdapter(messages));
         messagesScrollPane = new InfiniteScrollPane<>(messages);
     }
 

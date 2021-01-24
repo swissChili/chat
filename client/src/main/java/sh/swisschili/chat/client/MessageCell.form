@@ -43,11 +43,9 @@
           </component>
         </children>
       </grid>
-      <component id="d0ad1" class="javax.swing.JLabel" binding="body">
+      <component id="131b0" class="javax.swing.JTextArea" binding="body">
         <constraints border-constraint="Center"/>
-        <properties>
-          <text value="Label"/>
-        </properties>
+        <properties/>
       </component>
     </children>
   </grid>

@@ -33,7 +33,7 @@ import java.util.Locale;
 
 public class MessageCell implements ListCellRenderer<Message> {
     private JPanel rootPanel;
-    private JLabel body;
+    private JTextArea body;
     private JLabel sender;
     private JLabel time;
 
@@ -43,10 +43,12 @@ public class MessageCell implements ListCellRenderer<Message> {
     public MessageCell(@NotNull Message value, int parentWidth) {
         $$$setupUI$$$();
 
-//        int width = parentWidth / 6;
-//        int lines = value.getBody().length() / width + 1;
+        body.setText(value.getBody());
+        body.setLineWrap(true);
+        body.setWrapStyleWord(true);
 
-        body.setText("<html><body style='width:100%'>" + value.getBody());
+        if (parentWidth > 0)
+            body.setSize(parentWidth, Short.MAX_VALUE);
 
         sender.setText(value.getSender().getName());
         time.setText(new Date(value.getUnixTime()).toString());
@@ -85,8 +87,7 @@ public class MessageCell implements ListCellRenderer<Message> {
         if (timeFont != null) time.setFont(timeFont);
         time.setText("Time");
         panel1.add(time, cc.xy(3, 1));
-        body = new JLabel();
-        body.setText("Label");
+        body = new JTextArea();
         rootPanel.add(body, BorderLayout.CENTER);
     }
 

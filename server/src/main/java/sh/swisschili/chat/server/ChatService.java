@@ -27,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.*;
+import sh.swisschili.chat.util.ChatGrpc;
+import sh.swisschili.chat.util.ChatProtos;
 
 import java.io.IOException;
 import java.security.PublicKey;

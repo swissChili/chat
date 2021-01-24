@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package sh.swisschili.chat.client;
 
+import io.grpc.Server;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,6 +174,33 @@ public class ServerGroup {
                             public void onCompleted() {
                             }
                         });
+    }
+
+    public void createChannel(String name) {
+        ChatGrpc.ChatStub stub = pool.chatStubFor(server);
+
+        ServerGroup g = this;
+
+        stub.createChannel(CreateChannelRequest.newBuilder().setGroup(group)
+                        .setChannelName(name).build(),
+                new StreamObserver<CreateChannelResponse>() {
+                    @Override
+                    public void onNext(CreateChannelResponse value) {
+                        ServerChannel channel = new ServerChannel(pool, server, value.getChannel(), authorizedUser);
+                        g.channels.add(channel);
+                        g.model.addElement(channel);
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        t.printStackTrace();
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        // nothing
+                    }
+                });
     }
 
     public DefaultListModel<ServerChannel> getModel() {

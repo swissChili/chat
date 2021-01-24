@@ -52,12 +52,7 @@ public class InfiniteScrollPane<T> extends JScrollPane {
 
         @Override
         public void afterItemAdded() {
-            int min = getVerticalScrollBar().getMinimum();
-            int max = getVerticalScrollBar().getMaximum();
-            int visible = getVerticalScrollBar().getVisibleAmount();
-            int maxPossible = max - visible;
-
-            getVerticalScrollBar().setValue(max);
+            SwingUtilities.invokeLater(() -> getVerticalScrollBar().setValue(getVerticalScrollBar().getMaximum()));
         }
     };
 

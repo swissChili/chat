@@ -107,31 +107,7 @@ public class MainWindow {
         statusBox.setModel(statusModel);
 
         statusBox.addActionListener(e -> {
-            Presence presence = null;
-            String selected = (String) statusBox.getSelectedItem();
-            if (selected == null)
-                return;
-
-            switch (selected) {
-                case "Online":
-                    presence = Presence.ONLINE;
-                    break;
-                case "Away":
-                    presence = Presence.AWAY;
-                    break;
-                case "Do not disturb":
-                    presence = Presence.DND;
-            }
-
-            UserStatus.Builder builder = UserStatus.newBuilder();
-            if (presence == null) {
-                builder.setCustom(CustomPresence.newBuilder()
-                        .setName(selected).build());
-            } else {
-                builder.setPresence(presence);
-            }
-
-            updateStatus(builder.build());
+            updateStatusFromUi();
         });
 
         groups.setComponentPopupMenu(new GroupsPopUp(e -> new AddGroupDialog(this::groupAdded)
@@ -189,6 +165,34 @@ public class MainWindow {
         });
     }
 
+    private void updateStatusFromUi() {
+        Presence presence = null;
+        String selected = (String) statusBox.getSelectedItem();
+        if (selected == null)
+            return;
+
+        switch (selected) {
+            case "Online":
+                presence = Presence.ONLINE;
+                break;
+            case "Away":
+                presence = Presence.AWAY;
+                break;
+            case "Do not disturb":
+                presence = Presence.DND;
+        }
+
+        UserStatus.Builder builder = UserStatus.newBuilder();
+        if (presence == null) {
+            builder.setCustom(CustomPresence.newBuilder()
+                    .setName(selected).build());
+        } else {
+            builder.setPresence(presence);
+        }
+
+        updateStatus(builder.build());
+    }
+
     private void updateStatus(UserStatus status) {
         for (int i = 0; i < groupModel.size(); i++) {
             groupModel.get(i).setStatus(status);
@@ -208,6 +212,8 @@ public class MainWindow {
                 });
 
         groupModel.addElement(serverGroup);
+
+        updateStatusFromUi();
     }
 
     private void groupSelected() {

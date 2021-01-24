@@ -90,6 +90,7 @@ enum Presence {
   ONLINE = 0;
   AWAY = 1;
   DND = 2; // do not disturb
+  OFFLINE = 3;
 }
 
 message CustomPresence {
@@ -107,6 +108,7 @@ message UserStatus {
 
 message GroupUserStatusRequest {
   Group group = 1;
+  User for = 2;
 }
 
 message SetUserStatusRequest {

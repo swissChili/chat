@@ -115,7 +115,8 @@ public class ServerGroup {
                                 });
 
                         pool.chatStubFor(server)
-                                .getGroupUserStatuses(GroupUserStatusRequest.newBuilder().setGroup(group).build(),
+                                .getGroupUserStatuses(GroupUserStatusRequest.newBuilder().setGroup(group)
+                                                .setFor(user).build(),
                                         new StreamObserver<UserStatus>() {
                                             @Override
                                             public void onNext(UserStatus value) {

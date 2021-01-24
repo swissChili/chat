@@ -110,7 +110,7 @@ public class ChatService extends ChatGrpc.ChatImplBase {
 
             pool.authStubFor(user.getHost())
                     .getUserPublicKey(ChatProtos.PublicKeyRequest.newBuilder()
-                            .setUser(user).build(),
+                                    .setUser(user).build(),
                             listener);
         }
 
@@ -152,7 +152,8 @@ public class ChatService extends ChatGrpc.ChatImplBase {
                 }
             };
 
-            channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {});
+            channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {
+            });
         } catch (IOException e) {
             LOGGER.error("Could not create RabbitMQ channel in getMessages");
             responseObserver.onError(e);
@@ -272,6 +273,8 @@ public class ChatService extends ChatGrpc.ChatImplBase {
             Channel channel = getChannel(exchangeName);
             channel.basicPublish(exchangeName, "", null, request.getStatus().toByteArray());
 
+            db.setUserStatus(request.getStatus(), request.getGroup());
+
             LOGGER.info(String.format("Set user status %s", request.toString()));
 
             responseObserver.onNext(ChatProtos.SetUserStatusResponse.newBuilder().build());
@@ -300,9 +303,12 @@ public class ChatService extends ChatGrpc.ChatImplBase {
                 } catch (Exception e) {
                     LOGGER.info("Client disconnected");
                     channel.basicCancel(consumerTag);
+
+                    setUserOffline(request.getFor(), request.getGroup());
                 }
             };
-            channel.basicConsume(queueName, true, callback, consumerTag -> {});
+            channel.basicConsume(queueName, true, callback, consumerTag -> {
+            });
         } catch (IOException e) {
             responseObserver.onError(e);
         }
@@ -318,5 +324,12 @@ public class ChatService extends ChatGrpc.ChatImplBase {
 
     public void setAllowUnsignedMessages(boolean allowUnsignedMessages) {
         this.allowUnsignedMessages = allowUnsignedMessages;
+    }
+
+    private void setUserOffline(ChatProtos.User user, ChatProtos.Group group) {
+        db.setUserStatus(ChatProtos.UserStatus.newBuilder().setUser(user)
+                        .setPresence(ChatProtos.Presence.OFFLINE)
+                        .build(),
+                group);
     }
 }

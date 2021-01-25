@@ -31,12 +31,13 @@ public class InfiniteScrollPane<T> extends JScrollPane {
     private final JList<T> list;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InfiniteScrollPane.class);
-    private int numberToShowAtOnce = 20;
+    private int numberToShowAtOnce = 50;
     private final AtomicBoolean fetchingMore = new AtomicBoolean(false);
 
     private BufferedLoader<T> bufferedLoader = null;
     private final ItemAddedListener listener = new ItemAddedListener() {
         private boolean isAtBottom;
+
         @Override
         public void beforeItemAdded() {
             int min = getVerticalScrollBar().getMinimum();

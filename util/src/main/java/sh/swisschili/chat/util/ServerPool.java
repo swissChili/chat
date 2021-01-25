@@ -33,11 +33,20 @@ import java.util.HashMap;
 public class ServerPool {
     private final HashMap<String, Channel> channels = new HashMap<>();
 
+    private static final boolean useSsl = System.getenv("CHAT_NO_SSL") == null;
+
     private Channel channelFor(String server) {
         if (!channels.containsKey(server)) {
-            Channel channel = ManagedChannelBuilder.forAddress(server.trim(), Constants.DEFAULT_SERVER_PORT)
-                    .usePlaintext()
-                    .build();
+            ManagedChannelBuilder<?> builder = ManagedChannelBuilder.forAddress(server.trim(), Constants.DEFAULT_SERVER_PORT);
+
+            if (useSsl) {
+                builder = builder.useTransportSecurity();
+            } else {
+                builder = builder.usePlaintext();
+            }
+
+            Channel channel = builder.build();
+
             channels.put(server, channel);
             return channel;
         }

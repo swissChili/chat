@@ -44,6 +44,7 @@ public class ServerGroup {
 
     private List<ServerChannel> channels = null;
     private User authorizedUser;
+    private User user;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerGroup.class);
 
@@ -62,6 +63,7 @@ public class ServerGroup {
         this.error = error;
         this.listener = listener;
         this.groupName = groupName;
+        this.user = user;
 
         ServerGroup serverGroup = this;
 
@@ -151,7 +153,7 @@ public class ServerGroup {
 
     public void setStatus(UserStatus status) {
         status = UserStatus.newBuilder(status)
-                .setUser(authorizedUser)
+                .setUser(user)
                 .build();
 
         LOGGER.info(String.format("Setting status: %s\n", status.toString()));

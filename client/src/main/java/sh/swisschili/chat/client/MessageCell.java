@@ -40,8 +40,13 @@ public class MessageCell implements ListCellRenderer<Message> {
     public MessageCell() {
     }
 
-    public MessageCell(@NotNull Message value, int parentWidth) {
+    public MessageCell(@NotNull Message value, int parentWidth, boolean showHeader) {
         $$$setupUI$$$();
+
+        if (!showHeader) {
+            sender.setVisible(false);
+            time.setVisible(false);
+        }
 
         body.setText(value.getBody());
         body.setLineWrap(true);
@@ -54,14 +59,17 @@ public class MessageCell implements ListCellRenderer<Message> {
         time.setText(new Date(value.getUnixTime()).toString());
         Font f = sender.getFont();
         sender.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
-
-        rootPanel.setBorder(DarkBorders.createLineBorder(2, 0, 0, 0));
     }
 
     @Override
     public JComponent getListCellRendererComponent(JList<? extends Message> list, Message value, int index,
                                                    boolean isSelected, boolean cellHasFocus) {
-        return new MessageCell(value, list.getWidth()).rootPanel;
+        // Hide header if multiple messages from same sender
+        boolean showHeader = true;
+        if (index > 0) {
+            showHeader = !list.getModel().getElementAt(index - 1).getSender().equals(value.getSender());
+        }
+        return new MessageCell(value, list.getWidth(), showHeader).rootPanel;
     }
 
     /**
@@ -119,5 +127,4 @@ public class MessageCell implements ListCellRenderer<Message> {
     public JComponent $$$getRootComponent$$$() {
         return rootPanel;
     }
-
 }

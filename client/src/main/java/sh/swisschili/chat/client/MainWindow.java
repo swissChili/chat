@@ -213,7 +213,7 @@ public class MainWindow {
 
         groupModel.addElement(serverGroup);
 
-        updateStatusFromUi();
+        //updateStatusFromUi();
     }
 
     private void groupSelected() {
@@ -230,6 +230,8 @@ public class MainWindow {
 
     private void onError(Throwable t) {
         SwingUtilities.invokeLater(() -> {
+            System.err.println("ERROR OCCURRED:");
+            t.printStackTrace();
             JOptionPane.showMessageDialog(panel1, t.toString(), "Error", JOptionPane.ERROR_MESSAGE);
         });
     }

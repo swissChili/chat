@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.swisschili.chat.util.Constants;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
@@ -34,15 +35,20 @@ public class ChatServer {
     private final Server server;
     private static final Logger LOGGER = LoggerFactory.getLogger(ChatServer.class.getName());
 
-    public ChatServer(String host, String mqHost, int mqPort, int port, ServerDatabase db, boolean unsafe) throws IOException, TimeoutException {
-        this.port = port;
-        ChatService chatService = new ChatService(mqHost, mqPort, db);
-        chatService.setAllowUnsignedMessages(unsafe);
-        server = ServerBuilder
+    public ChatServer(ServerDatabase db, Args args) throws IOException, TimeoutException {
+        this.port = args.port;
+        ChatService chatService = new ChatService(args.mqHost, args.mqPort, db);
+        chatService.setAllowUnsignedMessages(args.unsafe);
+        ServerBuilder<?> builder = ServerBuilder
                 .forPort(port)
                 .addService(chatService)
-                .addService(new AuthService(db, host))
-                .build();
+                .addService(new AuthService(db, args.host));
+
+        if (args.ssl) {
+            builder = builder.useTransportSecurity(new File(args.certificate), new File(args.privateKey));
+        }
+
+        server = builder.build();
     }
 
     public void start() throws IOException {
@@ -68,6 +74,15 @@ public class ChatServer {
 
         @Parameter(names = { "--unsafe", "-u" }, description = "Forego signature validation (DO NOT use in production)")
         private Boolean unsafe = false;
+
+        @Parameter(names = { "--ssl", "-s" }, description = "Use SSL")
+        private Boolean ssl = false;
+
+        @Parameter(names = { "--cert" }, description = "SSL Certificate")
+        private String certificate = null;
+
+        @Parameter(names = { "--private-key" }, description = "SSL Private key")
+        private String privateKey = null;
     }
 
     public static void main(String[] argv) throws IOException, TimeoutException {
@@ -82,7 +97,7 @@ public class ChatServer {
         LOGGER.info("Launching server");
 
         ServerDatabase db = new ServerDatabase(args.mongoUrl);
-        ChatServer server = new ChatServer(args.host, args.mqHost, args.mqPort, args.port, db, args.unsafe);
+        ChatServer server = new ChatServer(db, args);
         server.start();
     }
 }

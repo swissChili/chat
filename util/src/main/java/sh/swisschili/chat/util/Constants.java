@@ -5,7 +5,7 @@ public class Constants {
 
     public static String LICENSE_HEADER =
             "Decentralized chat software\n" +
-            "Copyright (C) 2020  swissChili\n\n" +
+            "Copyright (C) 2021  swissChili\n\n" +
 
             "This program is free software: you can redistribute it and/or modify\n" +
             "it under the terms of the GNU Affero General Public License as published by\n" +
